@@ -44,7 +44,7 @@ class HomeScreen extends ConsumerWidget {
                 const SizedBox(height: 12),
                 ...Difficulty.values.map((d) => _DifficultyButton(difficulty: d)),
                 const SizedBox(height: 32),
-                _ManualEntryButton(),
+                const _ManualEntryButton(),
               ],
             ),
           ),
@@ -89,6 +89,8 @@ class _DifficultyButton extends ConsumerWidget {
 }
 
 class _ManualEntryButton extends ConsumerWidget {
+  const _ManualEntryButton();
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return OutlinedButton(

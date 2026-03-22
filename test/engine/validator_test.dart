@@ -1,4 +1,4 @@
-import 'package:flutter_test/flutter_test.dart';
+import 'package:test/test.dart';
 import 'package:ingrid/core/engine/engine.dart';
 
 SudokuBoard _boardFromGrid(List<List<int>> grid) {
