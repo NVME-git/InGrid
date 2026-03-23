@@ -73,6 +73,26 @@ class _SudokuGridState extends ConsumerState<SudokuGrid> {
       }
     }
 
+    // ── When a digit is pinned via long-press, also highlight peers of every
+    //    matching-value cell so unhighlighted cells reveal candidate positions.
+    if (game.pinnedDigit != null && selected.isEmpty) {
+      for (final (sr, sc) in sameValueCells) {
+        for (int c = 0; c < 9; c++) {
+          if (c != sc) peerCells.add((sr, c));
+        }
+        for (int r = 0; r < 9; r++) {
+          if (r != sr) peerCells.add((r, sc));
+        }
+        final boxR = (sr ~/ 3) * 3;
+        final boxC = (sc ~/ 3) * 3;
+        for (int r = boxR; r < boxR + 3; r++) {
+          for (int c = boxC; c < boxC + 3; c++) {
+            if (r != sr || c != sc) peerCells.add((r, c));
+          }
+        }
+      }
+    }
+
     return AspectRatio(
       aspectRatio: 1,
       child: Container(
@@ -114,6 +134,21 @@ class _SudokuGridState extends ConsumerState<SudokuGrid> {
                 final isFlashConflict = game.flashConflictCells.contains((row, col));
                 final isFlashNoteAttempt = game.flashNoteCells.contains((row, col));
 
+                // Compute auto-candidate notes: shown for empty cells with no user
+                // notes when auto-candidates mode is active.
+                Set<int>? autoCandidateNotes;
+                if (game.autoCandidates &&
+                    cell.digit == null &&
+                    cell.cornerNotes.isEmpty &&
+                    cell.centreNotes.isEmpty) {
+                  autoCandidateNotes = {};
+                  for (int d = 1; d <= 9; d++) {
+                    if (SudokuValidator.isValidPlacement(board, row, col, d)) {
+                      autoCandidateNotes.add(d);
+                    }
+                  }
+                }
+
                 return _SudokuCell(
                   cell: cell,
                   row: row,
@@ -126,6 +161,7 @@ class _SudokuGridState extends ConsumerState<SudokuGrid> {
                   isFlashNoteAttempt: isFlashNoteAttempt,
                   flashNoteDigit: game.flashNoteDigit,
                   flashNoteMode: game.flashNoteMode,
+                  autoCandidateNotes: autoCandidateNotes,
                   onTap: () {
                     ref.read(gameProvider.notifier).selectCell(row, col);
                   },
@@ -158,6 +194,8 @@ class _SudokuCell extends StatelessWidget {
   final bool isFlashNoteAttempt;
   final int? flashNoteDigit;
   final EntryMode? flashNoteMode;
+  /// Non-null when auto-candidates mode is on and cell is empty with no user notes.
+  final Set<int>? autoCandidateNotes;
   final VoidCallback onTap;
   final VoidCallback onDragEnter;
 
@@ -173,6 +211,7 @@ class _SudokuCell extends StatelessWidget {
     required this.isFlashNoteAttempt,
     required this.flashNoteDigit,
     required this.flashNoteMode,
+    this.autoCandidateNotes,
     required this.onTap,
     required this.onDragEnter,
   });
@@ -257,13 +296,18 @@ class _SudokuCell extends StatelessWidget {
       );
     }
 
-    final hasNotes = cell.cornerNotes.isNotEmpty || cell.centreNotes.isNotEmpty;
+    final hasUserNotes = cell.cornerNotes.isNotEmpty || cell.centreNotes.isNotEmpty;
+    final hasAutoNotes = autoCandidateNotes?.isNotEmpty == true;
+    final hasNotes = hasUserNotes || hasAutoNotes;
 
     if (hasNotes || isFlashNoteAttempt) {
       return Stack(
         children: [
           if (cell.cornerNotes.isNotEmpty)
-            _CornerNotes(notes: cell.cornerNotes),
+            _CornerNotes(notes: cell.cornerNotes)
+          else if (hasAutoNotes)
+            // Auto-computed candidates shown dimmer than user notes
+            _CornerNotes(notes: autoCandidateNotes!, textColor: Colors.white30),
           if (cell.centreNotes.isNotEmpty)
             Center(
               child: Text(
@@ -322,7 +366,8 @@ class _FlashNoteOverlay extends StatelessWidget {
 
 class _CornerNotes extends StatelessWidget {
   final Set<int> notes;
-  const _CornerNotes({required this.notes});
+  final Color textColor;
+  const _CornerNotes({required this.notes, this.textColor = Colors.white54});
 
   @override
   Widget build(BuildContext context) {
@@ -336,7 +381,7 @@ class _CornerNotes extends StatelessWidget {
         return Center(
           child: Text(
             notes.contains(digit) ? '$digit' : '',
-            style: const TextStyle(fontSize: 6, color: Colors.white54),
+            style: TextStyle(fontSize: 6, color: textColor),
           ),
         );
       },

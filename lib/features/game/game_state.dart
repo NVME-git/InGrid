@@ -38,6 +38,9 @@ class GameState {
   /// When set (and selectedCells is empty), tints all cells containing this digit
   /// with the same-value highlight — used by the long-press digit action.
   final int? pinnedDigit;
+  /// When true, every empty cell that has no user-written notes shows its
+  /// computed valid candidates as dim corner notes.
+  final bool autoCandidates;
 
   const GameState({
     required this.board,
@@ -55,6 +58,7 @@ class GameState {
     this.flashNoteDigit,
     this.flashNoteMode,
     this.pinnedDigit,
+    this.autoCandidates = false,
   });
 
   GameState copyWith({
@@ -77,6 +81,7 @@ class GameState {
     int? pinnedDigit,
     // Pass clearPinnedDigit: true to null-out the pinned digit highlight.
     bool clearPinnedDigit = false,
+    bool? autoCandidates,
   }) {
     return GameState(
       board: board ?? this.board,
@@ -94,6 +99,7 @@ class GameState {
       flashNoteDigit: clearFlash ? null : (flashNoteDigit ?? this.flashNoteDigit),
       flashNoteMode: clearFlash ? null : (flashNoteMode ?? this.flashNoteMode),
       pinnedDigit: clearPinnedDigit ? null : (pinnedDigit ?? this.pinnedDigit),
+      autoCandidates: autoCandidates ?? this.autoCandidates,
     );
   }
 }
@@ -479,6 +485,10 @@ class GameNotifier extends Notifier<GameState> {
 
   void toggleConflicts() {
     state = state.copyWith(showConflicts: !state.showConflicts);
+  }
+
+  void toggleAutoCandidates() {
+    state = state.copyWith(autoCandidates: !state.autoCandidates);
   }
 
   void _saveUndoSnapshot() {

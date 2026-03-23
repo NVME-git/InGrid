@@ -2,15 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../game_state.dart';
 
-// Compact 4-row grid layout — never overflows in portrait or landscape:
+// Compact layout — never overflows in portrait or landscape:
 //
 //   Row 1:  [Undo]     [1] [2] [3]  [Num]
 //   Row 2:  [Redo]     [4] [5] [6]  [Corner]
 //   Row 3:  [Deselect] [7] [8] [9]  [Centre]
 //   Row 4:  [Erase] [M·Num] [M·Cor] [M·Cen] [Color]
-//   Row 5:  (compact color-picker — only visible in Color mode)
+//   Row 5:  [Auto Candidates  (full-width toggle)]
+//   Row 6:  (compact color-picker — only visible in Color mode)
 //
-// Each row uses 5 Expanded children separated by 2 px gaps.
+// Rows 1–4 use 5 Expanded children separated by 2 px gaps.
 // All buttons are exactly 40 px tall; text labels use 8-9 px font.
 
 class DigitToolbar extends ConsumerWidget {
@@ -98,7 +99,31 @@ class DigitToolbar extends ConsumerWidget {
             onTap: () => notifier.setEntryModeAndMulti(EntryMode.highlighter, false),
           ),
         ]),
-        // ── Row 5: compact color picker (only in Color mode) ───────────────
+        const SizedBox(height: 3),
+        // ── Row 5: Auto Candidates toggle ─────────────────────────────────
+        _Btn(
+          active: game.autoCandidates,
+          onTap: notifier.toggleAutoCandidates,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.lightbulb_outline,
+                size: 13,
+                color: game.autoCandidates ? Colors.white : Colors.white70,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                'Auto Candidates',
+                style: TextStyle(
+                  fontSize: 8,
+                  color: game.autoCandidates ? Colors.white : Colors.white70,
+                ),
+              ),
+            ],
+          ),
+        ),
+        // ── Row 6: compact color picker (only in Color mode) ───────────────
         if (isColor) ...[
           const SizedBox(height: 4),
           _ColorPickerRow(
