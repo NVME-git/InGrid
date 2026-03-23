@@ -158,6 +158,11 @@ class GameNotifier extends Notifier<GameState> {
     state = state.copyWith(entryMode: mode);
   }
 
+  /// Sets entry mode and multi-select state in one atomic update.
+  void setEntryModeAndMulti(EntryMode mode, bool multi) {
+    state = state.copyWith(entryMode: mode, multiSelectMode: multi);
+  }
+
   void setHighlightColor(int index) {
     state = state.copyWith(highlightColorIndex: index);
   }
