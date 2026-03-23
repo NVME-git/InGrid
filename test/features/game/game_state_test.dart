@@ -72,6 +72,31 @@ void main() {
       container.read(gameProvider.notifier).setEntryMode(EntryMode.cornerNote);
       expect(container.read(gameProvider).entryMode, EntryMode.cornerNote);
     });
+
+    test('multiSelect toggle accumulates cells', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      container.read(gameProvider.notifier).startManualEntry();
+      container.read(gameProvider.notifier).toggleMultiSelect();
+      expect(container.read(gameProvider).multiSelectMode, isTrue);
+      // Selecting two cells should keep both selected
+      container.read(gameProvider.notifier).selectCell(0, 0);
+      container.read(gameProvider.notifier).selectCell(0, 1);
+      expect(container.read(gameProvider).selectedCells.length, 2);
+    });
+
+    test('multiSelect toggle off clears extra cells', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      container.read(gameProvider.notifier).startManualEntry();
+      container.read(gameProvider.notifier).toggleMultiSelect();
+      container.read(gameProvider.notifier).selectCell(0, 0);
+      container.read(gameProvider.notifier).selectCell(0, 1);
+      // Turn off multi-select; next tap should be single
+      container.read(gameProvider.notifier).toggleMultiSelect();
+      container.read(gameProvider.notifier).selectCell(1, 0);
+      expect(container.read(gameProvider).selectedCells.length, 1);
+    });
   });
 
   group('GameScreen widgets', () {

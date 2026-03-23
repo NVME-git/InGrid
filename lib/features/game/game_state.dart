@@ -26,6 +26,9 @@ class GameState {
   final Duration elapsed;
   final bool isComplete;
   final Set<(int, int)> conflicts;
+  /// When true, tapping cells adds/removes from selection rather than replacing it.
+  /// Active for fullNumber, cornerNote, centreNote modes.
+  final bool multiSelectMode;
 
   const GameState({
     required this.board,
@@ -37,6 +40,7 @@ class GameState {
     this.elapsed = Duration.zero,
     this.isComplete = false,
     this.conflicts = const {},
+    this.multiSelectMode = false,
   });
 
   GameState copyWith({
@@ -49,6 +53,7 @@ class GameState {
     Duration? elapsed,
     bool? isComplete,
     Set<(int, int)>? conflicts,
+    bool? multiSelectMode,
   }) {
     return GameState(
       board: board ?? this.board,
@@ -60,6 +65,7 @@ class GameState {
       elapsed: elapsed ?? this.elapsed,
       isComplete: isComplete ?? this.isComplete,
       conflicts: conflicts ?? this.conflicts,
+      multiSelectMode: multiSelectMode ?? this.multiSelectMode,
     );
   }
 }
@@ -97,10 +103,13 @@ class GameNotifier extends Notifier<GameState> {
   }
 
   void selectCell(int row, int col, {bool toggle = false, bool addToSelection = false}) {
+    // In multi-select mode (for digit/note modes) a tap adds/removes the cell
+    final effectiveAdd = addToSelection ||
+        (state.multiSelectMode && state.entryMode != EntryMode.highlighter);
     Set<(int, int)> newSelection;
-    if (addToSelection) {
+    if (effectiveAdd) {
       newSelection = Set.from(state.selectedCells);
-      if (toggle && newSelection.contains((row, col))) {
+      if (newSelection.contains((row, col))) {
         newSelection.remove((row, col));
       } else {
         newSelection.add((row, col));
@@ -113,6 +122,10 @@ class GameNotifier extends Notifier<GameState> {
       }
     }
     state = state.copyWith(selectedCells: newSelection);
+  }
+
+  void toggleMultiSelect() {
+    state = state.copyWith(multiSelectMode: !state.multiSelectMode);
   }
 
   void setEntryMode(EntryMode mode) {

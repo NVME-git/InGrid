@@ -13,7 +13,7 @@ class DigitToolbar extends ConsumerWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Entry mode toggles
+        // Entry mode toggles + multi-select button
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
@@ -45,6 +45,12 @@ class DigitToolbar extends ConsumerWidget {
               currentMode: game.entryMode,
               onTap: () => notifier.setEntryMode(EntryMode.highlighter),
             ),
+            // Multi-select toggle: hidden for highlighter mode
+            if (game.entryMode != EntryMode.highlighter)
+              _MultiSelectButton(
+                active: game.multiSelectMode,
+                onTap: notifier.toggleMultiSelect,
+              ),
           ],
         ),
         const SizedBox(height: 8),
@@ -83,6 +89,48 @@ class DigitToolbar extends ConsumerWidget {
   }
 }
 
+class _MultiSelectButton extends StatelessWidget {
+  final bool active;
+  final VoidCallback onTap;
+
+  const _MultiSelectButton({required this.active, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        constraints: const BoxConstraints(minWidth: 56, minHeight: 44),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        decoration: BoxDecoration(
+          color: active ? const Color(0xFF0D9488) : Colors.white12,
+          borderRadius: BorderRadius.circular(8),
+          border: active
+              ? Border.all(color: const Color(0xFF0D9488), width: 1.5)
+              : null,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.select_all,
+              size: 18,
+              color: active ? Colors.white : Colors.white70,
+            ),
+            Text(
+              'Multi',
+              style: TextStyle(
+                fontSize: 10,
+                color: active ? Colors.white : Colors.white70,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _ModeButton extends StatelessWidget {
   final String label;
   final IconData icon;
@@ -104,7 +152,7 @@ class _ModeButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        constraints: const BoxConstraints(minWidth: 64, minHeight: 44),
+        constraints: const BoxConstraints(minWidth: 56, minHeight: 44),
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         decoration: BoxDecoration(
           color: isActive ? const Color(0xFF0D9488) : Colors.white12,
