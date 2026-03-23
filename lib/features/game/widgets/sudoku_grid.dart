@@ -9,6 +9,11 @@ const _kCellBorder = 0.5; // thin border between individual cells
 const _kBoxColor = Color(0xFFCCCCCC); // bright for box separators
 const _kCellColor = Color(0x44FFFFFF); // dim for inner cell lines
 
+// Background tint colours (priority: selected > conflict > flash > sameValue > highlight > peer)
+const _kSelectedAlpha = 0.35;
+const _kSameValueAlpha = 0.22;
+const _kPeerAlpha = 0.10;
+
 class SudokuGrid extends ConsumerStatefulWidget {
   const SudokuGrid({super.key});
 
@@ -25,6 +30,42 @@ class _SudokuGridState extends ConsumerState<SudokuGrid> {
     final board = game.board;
     final selected = game.selectedCells;
     final conflicts = game.showConflicts ? game.conflicts : <(int, int)>{};
+
+    // ── Compute peer cells (same row / col / box as any selected cell) ──────
+    final Set<(int, int)> peerCells = {};
+    final Set<int> selectedDigits = {};
+    for (final (sr, sc) in selected) {
+      final d = board.cellAt(sr, sc).digit;
+      if (d != null) selectedDigits.add(d);
+      for (int c = 0; c < 9; c++) {
+        if (c != sc) peerCells.add((sr, c));
+      }
+      for (int r = 0; r < 9; r++) {
+        if (r != sr) peerCells.add((r, sc));
+      }
+      final boxR = (sr ~/ 3) * 3;
+      final boxC = (sc ~/ 3) * 3;
+      for (int r = boxR; r < boxR + 3; r++) {
+        for (int c = boxC; c < boxC + 3; c++) {
+          if (r != sr || c != sc) peerCells.add((r, c));
+        }
+      }
+    }
+
+    // ── Cells with the same digit as any selected cell ───────────────────────
+    final Set<(int, int)> sameValueCells = {};
+    if (selectedDigits.isNotEmpty) {
+      for (int r = 0; r < 9; r++) {
+        for (int c = 0; c < 9; c++) {
+          if (!selected.contains((r, c))) {
+            final d = board.cellAt(r, c).digit;
+            if (d != null && selectedDigits.contains(d)) {
+              sameValueCells.add((r, c));
+            }
+          }
+        }
+      }
+    }
 
     return AspectRatio(
       aspectRatio: 1,
@@ -50,6 +91,8 @@ class _SudokuGridState extends ConsumerState<SudokuGrid> {
                 final cell = board.cellAt(row, col);
                 final isSelected = selected.contains((row, col));
                 final hasConflict = conflicts.contains((row, col));
+                final isFlashConflict = game.flashConflictCells.contains((row, col));
+                final isFlashNoteAttempt = game.flashNoteCells.contains((row, col));
 
                 return _SudokuCell(
                   cell: cell,
@@ -57,6 +100,12 @@ class _SudokuGridState extends ConsumerState<SudokuGrid> {
                   col: col,
                   isSelected: isSelected,
                   hasConflict: hasConflict,
+                  isPeer: !isSelected && peerCells.contains((row, col)),
+                  isSameValue: sameValueCells.contains((row, col)),
+                  isFlashConflict: isFlashConflict,
+                  isFlashNoteAttempt: isFlashNoteAttempt,
+                  flashNoteDigit: game.flashNoteDigit,
+                  flashNoteMode: game.flashNoteMode,
                   onTap: () {
                     ref.read(gameProvider.notifier).selectCell(row, col);
                   },
@@ -83,6 +132,12 @@ class _SudokuCell extends StatelessWidget {
   final int col;
   final bool isSelected;
   final bool hasConflict;
+  final bool isPeer;
+  final bool isSameValue;
+  final bool isFlashConflict;
+  final bool isFlashNoteAttempt;
+  final int? flashNoteDigit;
+  final EntryMode? flashNoteMode;
   final VoidCallback onTap;
   final VoidCallback onDragEnter;
 
@@ -92,14 +147,17 @@ class _SudokuCell extends StatelessWidget {
     required this.col,
     required this.isSelected,
     required this.hasConflict,
+    required this.isPeer,
+    required this.isSameValue,
+    required this.isFlashConflict,
+    required this.isFlashNoteAttempt,
+    required this.flashNoteDigit,
+    required this.flashNoteMode,
     required this.onTap,
     required this.onDragEnter,
   });
 
-  /// Compute the border width for a given edge.
-  /// A box-edge border is _kBoxBorder; an inner-cell border is _kCellBorder.
-  /// The outermost grid edge is handled by the parent container, so cells
-  /// on the outer edge get no border on that side (0).
+  /// Left border width: 0 for first column, box-width at box edges, thin elsewhere.
   static double _leftW(int col) {
     if (col == 0) return 0;
     if (col % 3 == 0) return _kBoxBorder;
@@ -117,16 +175,27 @@ class _SudokuCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Priority (highest → lowest):
+    //   selected > conflict/flash-conflict > flash-note-attempt >
+    //   same-value > user-highlight > peer
     Color bgColor = Colors.transparent;
     if (isSelected) {
-      bgColor = const Color(0xFF0D9488).withValues(alpha: 0.35);
+      bgColor = const Color(0xFF0D9488).withValues(alpha: _kSelectedAlpha);
+    } else if (isFlashConflict) {
+      bgColor = Colors.red.withValues(alpha: 0.45);
     } else if (hasConflict) {
       bgColor = Colors.red.withValues(alpha: 0.25);
+    } else if (isFlashNoteAttempt) {
+      bgColor = Colors.orange.withValues(alpha: 0.30);
+    } else if (isSameValue) {
+      bgColor = const Color(0xFF0D9488).withValues(alpha: _kSameValueAlpha);
     } else if (cell.highlightColor != null && cell.highlightColor! >= 0) {
       final hc = cell.highlightColor!;
       if (hc < kHighlightColors.length) {
         bgColor = Color(kHighlightColors[hc]).withValues(alpha: 0.4);
       }
+    } else if (isPeer) {
+      bgColor = const Color(0xFF0D9488).withValues(alpha: _kPeerAlpha);
     }
 
     return GestureDetector(
@@ -168,8 +237,9 @@ class _SudokuCell extends StatelessWidget {
       );
     }
 
-    // Show notes
-    if (cell.cornerNotes.isNotEmpty || cell.centreNotes.isNotEmpty) {
+    final hasNotes = cell.cornerNotes.isNotEmpty || cell.centreNotes.isNotEmpty;
+
+    if (hasNotes || isFlashNoteAttempt) {
       return Stack(
         children: [
           if (cell.cornerNotes.isNotEmpty)
@@ -181,11 +251,52 @@ class _SudokuCell extends StatelessWidget {
                 style: const TextStyle(fontSize: 7, color: Colors.white70),
               ),
             ),
+          // Flash: briefly show the rejected digit in red
+          if (isFlashNoteAttempt && flashNoteDigit != null)
+            _FlashNoteOverlay(digit: flashNoteDigit!, mode: flashNoteMode),
         ],
       );
     }
 
     return const SizedBox.shrink();
+  }
+}
+
+/// Briefly displays a rejected note digit in red.
+class _FlashNoteOverlay extends StatelessWidget {
+  final int digit;
+  final EntryMode? mode;
+
+  const _FlashNoteOverlay({required this.digit, this.mode});
+
+  @override
+  Widget build(BuildContext context) {
+    if (mode == EntryMode.cornerNote) {
+      // Show digit in its corner-note grid position, in red.
+      return GridView.builder(
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+        ),
+        itemCount: 9,
+        itemBuilder: (_, i) {
+          final d = i + 1;
+          return Center(
+            child: Text(
+              d == digit ? '$d' : '',
+              style: const TextStyle(fontSize: 6, color: Colors.red),
+            ),
+          );
+        },
+      );
+    }
+    // Centre note style
+    return Center(
+      child: Text(
+        '$digit',
+        style: const TextStyle(fontSize: 7, color: Colors.red),
+      ),
+    );
   }
 }
 

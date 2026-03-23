@@ -82,6 +82,11 @@ class DigitToolbar extends ConsumerWidget {
               label: 'Erase',
               onTap: notifier.erase,
             ),
+            _ActionButton(
+              icon: Icons.deselect,
+              label: 'Deselect',
+              onTap: notifier.deselectAll,
+            ),
           ],
         ),
       ],

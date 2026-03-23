@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/engine/engine.dart';
 
@@ -29,6 +30,11 @@ class GameState {
   /// When true, tapping cells adds/removes from selection rather than replacing it.
   /// Active for fullNumber, cornerNote, centreNote modes.
   final bool multiSelectMode;
+  // Transient flash state for note-conflict validation (cleared after ~800 ms)
+  final Set<(int, int)> flashConflictCells; // existing-digit cells highlighted red
+  final Set<(int, int)> flashNoteCells;     // cells where invalid note was attempted
+  final int? flashNoteDigit;                // the digit that was rejected
+  final EntryMode? flashNoteMode;           // cornerNote or centreNote
 
   const GameState({
     required this.board,
@@ -41,6 +47,10 @@ class GameState {
     this.isComplete = false,
     this.conflicts = const {},
     this.multiSelectMode = false,
+    this.flashConflictCells = const {},
+    this.flashNoteCells = const {},
+    this.flashNoteDigit,
+    this.flashNoteMode,
   });
 
   GameState copyWith({
@@ -54,6 +64,12 @@ class GameState {
     bool? isComplete,
     Set<(int, int)>? conflicts,
     bool? multiSelectMode,
+    Set<(int, int)>? flashConflictCells,
+    Set<(int, int)>? flashNoteCells,
+    int? flashNoteDigit,
+    EntryMode? flashNoteMode,
+    // Pass clearFlash: true to explicitly null-out all flash fields.
+    bool clearFlash = false,
   }) {
     return GameState(
       board: board ?? this.board,
@@ -66,6 +82,10 @@ class GameState {
       isComplete: isComplete ?? this.isComplete,
       conflicts: conflicts ?? this.conflicts,
       multiSelectMode: multiSelectMode ?? this.multiSelectMode,
+      flashConflictCells: clearFlash ? const {} : (flashConflictCells ?? this.flashConflictCells),
+      flashNoteCells: clearFlash ? const {} : (flashNoteCells ?? this.flashNoteCells),
+      flashNoteDigit: clearFlash ? null : (flashNoteDigit ?? this.flashNoteDigit),
+      flashNoteMode: clearFlash ? null : (flashNoteMode ?? this.flashNoteMode),
     );
   }
 }
@@ -75,6 +95,8 @@ class GameNotifier extends Notifier<GameState> {
   // Undo stack stores board snapshots
   final List<SudokuBoard> _undoStack = [];
   final List<SudokuBoard> _redoStack = [];
+  // Cancellable timer for clearing transient flash state
+  Timer? _flashTimer;
 
   @override
   GameState build() {
@@ -128,6 +150,10 @@ class GameNotifier extends Notifier<GameState> {
     state = state.copyWith(multiSelectMode: !state.multiSelectMode);
   }
 
+  void deselectAll() {
+    state = state.copyWith(selectedCells: const {});
+  }
+
   void setEntryMode(EntryMode mode) {
     state = state.copyWith(entryMode: mode);
   }
@@ -138,17 +164,18 @@ class GameNotifier extends Notifier<GameState> {
 
   void enterDigit(int digit) {
     if (state.selectedCells.isEmpty) return;
-    _saveUndoSnapshot();
-    _redoStack.clear();
 
     final newBoard = state.board.copy();
     final affected = <(int, int)>[];
+    final flashConflict = <(int, int)>{};
+    final flashNote = <(int, int)>{};
+    final entryMode = state.entryMode;
 
     for (final (r, c) in state.selectedCells) {
       final cell = newBoard.cells[r][c];
       if (cell.isGiven) continue;
 
-      switch (state.entryMode) {
+      switch (entryMode) {
         case EntryMode.fullNumber:
           cell.digit = digit;
           cell.cornerNotes.clear();
@@ -156,6 +183,15 @@ class GameNotifier extends Notifier<GameState> {
           affected.add((r, c));
           break;
         case EntryMode.cornerNote:
+          // Only block *adding* a note that conflicts; removal is always allowed.
+          if (!cell.cornerNotes.contains(digit)) {
+            final peers = _findNoteConflicts(newBoard, r, c, digit);
+            if (peers.isNotEmpty) {
+              flashConflict.addAll(peers);
+              flashNote.add((r, c));
+              break;
+            }
+          }
           if (cell.cornerNotes.contains(digit)) {
             cell.cornerNotes.remove(digit);
           } else {
@@ -164,6 +200,14 @@ class GameNotifier extends Notifier<GameState> {
           affected.add((r, c));
           break;
         case EntryMode.centreNote:
+          if (!cell.centreNotes.contains(digit)) {
+            final peers = _findNoteConflicts(newBoard, r, c, digit);
+            if (peers.isNotEmpty) {
+              flashConflict.addAll(peers);
+              flashNote.add((r, c));
+              break;
+            }
+          }
           if (cell.centreNotes.contains(digit)) {
             cell.centreNotes.remove(digit);
           } else {
@@ -178,14 +222,56 @@ class GameNotifier extends Notifier<GameState> {
       }
     }
 
+    // Save undo only when the board actually changed.
+    if (affected.isNotEmpty) {
+      _saveUndoSnapshot();
+      _redoStack.clear();
+    }
+
+    // Handle note-conflict flash (may coexist with valid changes in other cells).
+    if (flashNote.isNotEmpty) {
+      _flashTimer?.cancel();
+      var newState = state.copyWith(
+        flashConflictCells: flashConflict,
+        flashNoteCells: flashNote,
+        flashNoteDigit: digit,
+        flashNoteMode: entryMode,
+      );
+      if (affected.isNotEmpty) {
+        final boardConflicts = SudokuValidator.findConflicts(newBoard);
+        newState = newState.copyWith(
+          board: newBoard,
+          conflicts: boardConflicts,
+          isComplete: newBoard.isSolved && boardConflicts.isEmpty,
+        );
+      }
+      state = newState;
+      _flashTimer = Timer(const Duration(milliseconds: 800), () {
+        if (state.flashNoteCells.isNotEmpty) {
+          state = state.copyWith(clearFlash: true);
+        }
+      });
+      if (affected.isNotEmpty) {
+        _recorder.record(MoveRecord(
+          type: entryMode == EntryMode.cornerNote
+              ? MoveType.addCornerNote
+              : MoveType.addCentreNote,
+          timestamp: DateTime.now(),
+          cells: affected,
+          value: digit,
+        ));
+      }
+      return;
+    }
+
     if (affected.isEmpty) return;
 
     _recorder.record(MoveRecord(
-      type: state.entryMode == EntryMode.fullNumber
+      type: entryMode == EntryMode.fullNumber
           ? MoveType.placeDigit
-          : state.entryMode == EntryMode.cornerNote
+          : entryMode == EntryMode.cornerNote
               ? MoveType.addCornerNote
-              : state.entryMode == EntryMode.centreNote
+              : entryMode == EntryMode.centreNote
                   ? MoveType.addCentreNote
                   : MoveType.highlight,
       timestamp: DateTime.now(),
@@ -201,6 +287,28 @@ class GameNotifier extends Notifier<GameState> {
       isComplete: complete,
       conflicts: conflicts,
     );
+  }
+
+  /// Returns the cells in the same row, column, or 3×3 box as [row],[col]
+  /// that already contain [digit]. An empty set means no conflict.
+  Set<(int, int)> _findNoteConflicts(SudokuBoard board, int row, int col, int digit) {
+    final result = <(int, int)>{};
+    for (int c = 0; c < 9; c++) {
+      if (c != col && board.cells[row][c].digit == digit) result.add((row, c));
+    }
+    for (int r = 0; r < 9; r++) {
+      if (r != row && board.cells[r][col].digit == digit) result.add((r, col));
+    }
+    final boxR = (row ~/ 3) * 3;
+    final boxC = (col ~/ 3) * 3;
+    for (int r = boxR; r < boxR + 3; r++) {
+      for (int c = boxC; c < boxC + 3; c++) {
+        if ((r != row || c != col) && board.cells[r][c].digit == digit) {
+          result.add((r, c));
+        }
+      }
+    }
+    return result;
   }
 
   void erase({bool fullClear = false}) {

@@ -97,6 +97,56 @@ void main() {
       container.read(gameProvider.notifier).selectCell(1, 0);
       expect(container.read(gameProvider).selectedCells.length, 1);
     });
+
+    test('deselectAll clears selection', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      container.read(gameProvider.notifier).startManualEntry();
+      container.read(gameProvider.notifier).selectCell(0, 0);
+      container.read(gameProvider.notifier).deselectAll();
+      expect(container.read(gameProvider).selectedCells, isEmpty);
+    });
+
+    test('note conflict fires flash state and does not add note', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      // Set up a board where row 0 already has digit 5 at col 5
+      container.read(gameProvider.notifier).startManualEntry();
+      container.read(gameProvider.notifier).selectCell(0, 5);
+      container.read(gameProvider.notifier).enterDigit(5); // place 5 at (0,5)
+      // Now switch to cornerNote mode and try to add 5 to (0,0) — same row
+      container.read(gameProvider.notifier).setEntryMode(EntryMode.cornerNote);
+      container.read(gameProvider.notifier).selectCell(0, 0);
+      container.read(gameProvider.notifier).enterDigit(5);
+      final game = container.read(gameProvider);
+      // Note should NOT have been added
+      expect(game.board.cells[0][0].cornerNotes.contains(5), isFalse);
+      // Flash state should be set
+      expect(game.flashNoteCells, contains((0, 0)));
+      expect(game.flashConflictCells, contains((0, 5)));
+      expect(game.flashNoteDigit, 5);
+    });
+
+    test('note removal allowed even when same digit in row', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      container.read(gameProvider.notifier).startManualEntry();
+      // Manually add a corner note first (no conflict yet)
+      container.read(gameProvider.notifier).setEntryMode(EntryMode.cornerNote);
+      container.read(gameProvider.notifier).selectCell(0, 0);
+      container.read(gameProvider.notifier).enterDigit(5); // adds note 5
+      // Now place digit 5 at another cell in same row
+      container.read(gameProvider.notifier).setEntryMode(EntryMode.fullNumber);
+      container.read(gameProvider.notifier).selectCell(0, 5);
+      container.read(gameProvider.notifier).enterDigit(5);
+      // Switch back to corner mode and remove the note — should be allowed
+      container.read(gameProvider.notifier).setEntryMode(EntryMode.cornerNote);
+      container.read(gameProvider.notifier).selectCell(0, 0);
+      container.read(gameProvider.notifier).enterDigit(5); // removes note 5
+      final game = container.read(gameProvider);
+      expect(game.board.cells[0][0].cornerNotes.contains(5), isFalse);
+      expect(game.flashNoteCells, isEmpty);
+    });
   });
 
   group('GameScreen widgets', () {
