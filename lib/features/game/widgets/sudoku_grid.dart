@@ -261,21 +261,30 @@ class _SudokuCell extends StatelessWidget {
       onTap: onTap,
       child: MouseRegion(
         onEnter: (_) => onDragEnter(),
-        child: Container(
-          decoration: BoxDecoration(
-            color: bgColor,
-            border: Border(
-              left: BorderSide(color: _leftC(col), width: _leftW(col)),
-              top: BorderSide(color: _topC(row), width: _topW(row)),
+        child: LayoutBuilder(builder: (ctx, constraints) {
+          final cellSize = constraints.maxWidth;
+          return Container(
+            decoration: BoxDecoration(
+              color: bgColor,
+              border: Border(
+                left: BorderSide(color: _leftC(col), width: _leftW(col)),
+                top: BorderSide(color: _topC(row), width: _topW(row)),
+              ),
             ),
-          ),
-          child: _buildCellContent(),
-        ),
+            child: _buildCellContent(cellSize),
+          );
+        }),
       ),
     );
   }
 
-  Widget _buildCellContent() {
+  Widget _buildCellContent(double cellSize) {
+    // Corner-note font: ~21% of cell width (each note sits in a 1/3-width slot).
+    // Centre-note font: ~25% of cell width.
+    // Clamp to sane min/max so tiny cells are still readable.
+    final cornerFontSize = (cellSize * 0.21).clamp(8.0, 14.0);
+    final centreFontSize = (cellSize * 0.25).clamp(9.0, 16.0);
+
     if (cell.digit != null) {
       return Center(
         child: Text(
@@ -304,20 +313,26 @@ class _SudokuCell extends StatelessWidget {
       return Stack(
         children: [
           if (cell.cornerNotes.isNotEmpty)
-            _CornerNotes(notes: cell.cornerNotes)
+            _CornerNotes(notes: cell.cornerNotes, fontSize: cornerFontSize)
           else if (hasAutoNotes)
-            // Auto-computed candidates shown dimmer than user notes
-            _CornerNotes(notes: autoCandidateNotes!, textColor: Colors.white30),
+            _CornerNotes(
+                notes: autoCandidateNotes!,
+                fontSize: cornerFontSize,
+                textColor: Colors.white30),
           if (cell.centreNotes.isNotEmpty)
             Center(
               child: Text(
                 (cell.centreNotes.toList()..sort()).join(),
-                style: const TextStyle(fontSize: 7, color: Colors.white70),
+                style: TextStyle(fontSize: centreFontSize, color: Colors.white70),
               ),
             ),
           // Flash: briefly show the rejected digit in red
           if (isFlashNoteAttempt && flashNoteDigit != null)
-            _FlashNoteOverlay(digit: flashNoteDigit!, mode: flashNoteMode),
+            _FlashNoteOverlay(
+                digit: flashNoteDigit!,
+                mode: flashNoteMode,
+                cornerFontSize: cornerFontSize,
+                centreFontSize: centreFontSize),
         ],
       );
     }
@@ -330,8 +345,15 @@ class _SudokuCell extends StatelessWidget {
 class _FlashNoteOverlay extends StatelessWidget {
   final int digit;
   final EntryMode? mode;
+  final double cornerFontSize;
+  final double centreFontSize;
 
-  const _FlashNoteOverlay({required this.digit, this.mode});
+  const _FlashNoteOverlay({
+    required this.digit,
+    this.mode,
+    this.cornerFontSize = 8,
+    this.centreFontSize = 9,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -348,7 +370,7 @@ class _FlashNoteOverlay extends StatelessWidget {
           return Center(
             child: Text(
               d == digit ? '$d' : '',
-              style: const TextStyle(fontSize: 6, color: Colors.red),
+              style: TextStyle(fontSize: cornerFontSize, color: Colors.red),
             ),
           );
         },
@@ -358,7 +380,7 @@ class _FlashNoteOverlay extends StatelessWidget {
     return Center(
       child: Text(
         '$digit',
-        style: const TextStyle(fontSize: 7, color: Colors.red),
+        style: TextStyle(fontSize: centreFontSize, color: Colors.red),
       ),
     );
   }
@@ -367,7 +389,12 @@ class _FlashNoteOverlay extends StatelessWidget {
 class _CornerNotes extends StatelessWidget {
   final Set<int> notes;
   final Color textColor;
-  const _CornerNotes({required this.notes, this.textColor = Colors.white54});
+  final double fontSize;
+  const _CornerNotes({
+    required this.notes,
+    this.textColor = Colors.white54,
+    this.fontSize = 8,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -381,7 +408,7 @@ class _CornerNotes extends StatelessWidget {
         return Center(
           child: Text(
             notes.contains(digit) ? '$digit' : '',
-            style: TextStyle(fontSize: 6, color: textColor),
+            style: TextStyle(fontSize: fontSize, color: textColor),
           ),
         );
       },

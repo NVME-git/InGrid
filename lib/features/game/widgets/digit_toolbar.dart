@@ -12,10 +12,14 @@ import '../game_state.dart';
 //   Row 6:  (compact color-picker — only visible in Color mode)
 //
 // Rows 1–4 use 5 Expanded children separated by 2 px gaps.
-// All buttons are exactly 40 px tall; text labels use 8-9 px font.
+// When [expanded] is true every row is wrapped in Expanded so the toolbar
+// fills its parent height; buttons grow to fill the available space.
 
 class DigitToolbar extends ConsumerWidget {
-  const DigitToolbar({super.key});
+  /// When true the toolbar fills its parent's available height so buttons grow
+  /// to use the space (portrait/landscape full-height mode).
+  final bool expanded;
+  const DigitToolbar({super.key, this.expanded = false});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -25,112 +29,108 @@ class DigitToolbar extends ConsumerWidget {
     final multi = game.multiSelectMode;
     final isColor = mode == EntryMode.highlighter;
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // ── Row 1: Undo | 1 | 2 | 3 | Num (single mode) ──────────────────
-        _ToolRow(children: [
-          _ActionBtn(icon: Icons.undo, label: 'Undo', onTap: notifier.undo),
-          _DigitBtn(digit: 1, disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
-          _DigitBtn(digit: 2, disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
-          _DigitBtn(digit: 3, disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
-          _ModeBtn(
-            label: 'Num',
-            icon: Icons.grid_4x4,
-            active: mode == EntryMode.fullNumber && !multi,
-            onTap: () => notifier.setEntryModeAndMulti(EntryMode.fullNumber, false),
-          ),
-        ]),
-        const SizedBox(height: 3),
-        // ── Row 2: Redo | 4 | 5 | 6 | Corner (single mode) ───────────────
-        _ToolRow(children: [
-          _ActionBtn(icon: Icons.redo, label: 'Redo', onTap: notifier.redo),
-          _DigitBtn(digit: 4, disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
-          _DigitBtn(digit: 5, disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
-          _DigitBtn(digit: 6, disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
-          _ModeBtn(
-            label: 'Corner',
-            icon: Icons.format_list_numbered,
-            active: mode == EntryMode.cornerNote && !multi,
-            onTap: () => notifier.setEntryModeAndMulti(EntryMode.cornerNote, false),
-          ),
-        ]),
-        const SizedBox(height: 3),
-        // ── Row 3: Deselect | 7 | 8 | 9 | Centre (single mode) ───────────
-        _ToolRow(children: [
-          _ActionBtn(icon: Icons.deselect, label: 'Desel', onTap: notifier.deselectAll),
-          _DigitBtn(digit: 7, disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
-          _DigitBtn(digit: 8, disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
-          _DigitBtn(digit: 9, disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
-          _ModeBtn(
-            label: 'Centre',
-            icon: Icons.notes,
-            active: mode == EntryMode.centreNote && !multi,
-            onTap: () => notifier.setEntryModeAndMulti(EntryMode.centreNote, false),
-          ),
-        ]),
-        const SizedBox(height: 3),
-        // ── Row 4: Erase | M·Num | M·Cor | M·Cen | Color ─────────────────
-        _ToolRow(children: [
-          _ActionBtn(
-              icon: Icons.backspace_outlined, label: 'Erase', onTap: notifier.erase),
-          _ModeBtn(
-            label: 'M·Num',
-            icon: Icons.select_all,
-            active: mode == EntryMode.fullNumber && multi,
-            onTap: () => notifier.setEntryModeAndMulti(EntryMode.fullNumber, true),
-          ),
-          _ModeBtn(
-            label: 'M·Cor',
-            icon: Icons.select_all,
-            active: mode == EntryMode.cornerNote && multi,
-            onTap: () => notifier.setEntryModeAndMulti(EntryMode.cornerNote, true),
-          ),
-          _ModeBtn(
-            label: 'M·Cen',
-            icon: Icons.select_all,
-            active: mode == EntryMode.centreNote && multi,
-            onTap: () => notifier.setEntryModeAndMulti(EntryMode.centreNote, true),
-          ),
-          _ModeBtn(
-            label: 'Color',
-            icon: Icons.color_lens_outlined,
-            active: isColor,
-            onTap: () => notifier.setEntryModeAndMulti(EntryMode.highlighter, false),
-          ),
-        ]),
-        const SizedBox(height: 3),
-        // ── Row 5: Auto Candidates toggle ─────────────────────────────────
-        _Btn(
-          active: game.autoCandidates,
-          onTap: notifier.toggleAutoCandidates,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.lightbulb_outline,
-                size: 13,
-                color: game.autoCandidates ? Colors.white : Colors.white70,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                'Auto Candidates',
-                style: TextStyle(
+    // ── Build the 5 button rows (shared between compact and expanded modes) ──
+    final xAlign =
+        expanded ? CrossAxisAlignment.stretch : CrossAxisAlignment.center;
+
+    final row1 = _ToolRow(crossAxisAlignment: xAlign, children: [
+      _ActionBtn(icon: Icons.undo, label: 'Undo', onTap: notifier.undo),
+      _DigitBtn(digit: 1, disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
+      _DigitBtn(digit: 2, disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
+      _DigitBtn(digit: 3, disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
+      _ModeBtn(
+        label: 'Num',
+        icon: Icons.grid_4x4,
+        active: mode == EntryMode.fullNumber && !multi,
+        onTap: () => notifier.setEntryModeAndMulti(EntryMode.fullNumber, false),
+      ),
+    ]);
+    final row2 = _ToolRow(crossAxisAlignment: xAlign, children: [
+      _ActionBtn(icon: Icons.redo, label: 'Redo', onTap: notifier.redo),
+      _DigitBtn(digit: 4, disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
+      _DigitBtn(digit: 5, disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
+      _DigitBtn(digit: 6, disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
+      _ModeBtn(
+        label: 'Corner',
+        icon: Icons.format_list_numbered,
+        active: mode == EntryMode.cornerNote && !multi,
+        onTap: () => notifier.setEntryModeAndMulti(EntryMode.cornerNote, false),
+      ),
+    ]);
+    final row3 = _ToolRow(crossAxisAlignment: xAlign, children: [
+      _ActionBtn(icon: Icons.deselect, label: 'Desel', onTap: notifier.deselectAll),
+      _DigitBtn(digit: 7, disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
+      _DigitBtn(digit: 8, disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
+      _DigitBtn(digit: 9, disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
+      _ModeBtn(
+        label: 'Centre',
+        icon: Icons.notes,
+        active: mode == EntryMode.centreNote && !multi,
+        onTap: () => notifier.setEntryModeAndMulti(EntryMode.centreNote, false),
+      ),
+    ]);
+    final row4 = _ToolRow(crossAxisAlignment: xAlign, children: [
+      _ActionBtn(icon: Icons.backspace_outlined, label: 'Erase', onTap: notifier.erase),
+      _ModeBtn(label: 'M·Num', icon: Icons.select_all, active: mode == EntryMode.fullNumber && multi,
+          onTap: () => notifier.setEntryModeAndMulti(EntryMode.fullNumber, true)),
+      _ModeBtn(label: 'M·Cor', icon: Icons.select_all, active: mode == EntryMode.cornerNote && multi,
+          onTap: () => notifier.setEntryModeAndMulti(EntryMode.cornerNote, true)),
+      _ModeBtn(label: 'M·Cen', icon: Icons.select_all, active: mode == EntryMode.centreNote && multi,
+          onTap: () => notifier.setEntryModeAndMulti(EntryMode.centreNote, true)),
+      _ModeBtn(label: 'Color', icon: Icons.color_lens_outlined, active: isColor,
+          onTap: () => notifier.setEntryModeAndMulti(EntryMode.highlighter, false)),
+    ]);
+
+    final autoCandidatesBtn = _Btn(
+      active: game.autoCandidates,
+      onTap: notifier.toggleAutoCandidates,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.lightbulb_outline, size: 13,
+              color: game.autoCandidates ? Colors.white : Colors.white70),
+          const SizedBox(width: 4),
+          Text('Auto Candidates',
+              style: TextStyle(
                   fontSize: 8,
-                  color: game.autoCandidates ? Colors.white : Colors.white70,
-                ),
-              ),
-            ],
-          ),
-        ),
-        // ── Row 6: compact color picker (only in Color mode) ───────────────
-        if (isColor) ...[
-          const SizedBox(height: 4),
-          _ColorPickerRow(
-            selectedIndex: game.highlightColorIndex,
-            onSelect: notifier.setHighlightColor,
-          ),
+                  color: game.autoCandidates ? Colors.white : Colors.white70)),
         ],
+      ),
+    );
+
+    final colorPicker = isColor
+        ? <Widget>[
+            const SizedBox(height: 4),
+            _ColorPickerRow(
+                selectedIndex: game.highlightColorIndex,
+                onSelect: notifier.setHighlightColor),
+          ]
+        : <Widget>[];
+
+    if (!expanded) {
+      // ── Compact mode (fixed 40px button height) ────────────────────────
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          row1, const SizedBox(height: 3),
+          row2, const SizedBox(height: 3),
+          row3, const SizedBox(height: 3),
+          row4, const SizedBox(height: 3),
+          autoCandidatesBtn,
+          ...colorPicker,
+        ],
+      );
+    }
+
+    // ── Expanded mode — every row fills its proportional share of height ──
+    return Column(
+      children: [
+        Expanded(child: row1), const SizedBox(height: 3),
+        Expanded(child: row2), const SizedBox(height: 3),
+        Expanded(child: row3), const SizedBox(height: 3),
+        Expanded(child: row4), const SizedBox(height: 3),
+        Expanded(child: autoCandidatesBtn),
+        ...colorPicker,
       ],
     );
   }
@@ -141,7 +141,11 @@ class DigitToolbar extends ConsumerWidget {
 /// A row of exactly 5 `Expanded` items separated by 2 px gaps.
 class _ToolRow extends StatelessWidget {
   final List<Widget> children;
-  const _ToolRow({required this.children});
+  final CrossAxisAlignment crossAxisAlignment;
+  const _ToolRow({
+    required this.children,
+    this.crossAxisAlignment = CrossAxisAlignment.center,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -151,11 +155,12 @@ class _ToolRow extends StatelessWidget {
       if (i > 0) items.add(const SizedBox(width: 2));
       items.add(Expanded(child: children[i]));
     }
-    return Row(children: items);
+    return Row(crossAxisAlignment: crossAxisAlignment, children: items);
   }
 }
 
-/// Base button: 40 px tall, rounded, teal when active, white12 when inactive.
+/// Base button: min 40 px tall (fills parent height when inside Expanded),
+/// rounded, teal when active, white12 when inactive.
 class _Btn extends StatelessWidget {
   final Widget child;
   final VoidCallback? onTap;
@@ -170,7 +175,8 @@ class _Btn extends StatelessWidget {
       onTap: onTap,
       onLongPress: onLongPress,
       child: Container(
-        height: 40,
+        // minHeight 40 in compact; fills tight constraint from Expanded in expanded mode.
+        constraints: const BoxConstraints(minHeight: 40),
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: active ? const Color(0xFF0D9488) : Colors.white12,

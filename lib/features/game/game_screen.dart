@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:math' show min;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'game_state.dart';
 import 'widgets/sudoku_grid.dart';
@@ -46,6 +48,70 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     return '$m:$s';
   }
 
+  // ── Keyboard shortcuts ────────────────────────────────────────────────────
+  // N = Number mode     V = Corner mode    C = Centre mode
+  // M = Multi-toggle    Z = Undo           Y = Redo
+  // 1-9 = Enter digit   Delete/Backspace = Erase    Escape = Deselect
+  KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+      return KeyEventResult.ignored;
+    }
+    final notifier = ref.read(gameProvider.notifier);
+    final key = event.logicalKey;
+
+    // Digit keys 1-9 (main keyboard and numpad)
+    const digitKeys = {
+      LogicalKeyboardKey.digit1: 1, LogicalKeyboardKey.numpad1: 1,
+      LogicalKeyboardKey.digit2: 2, LogicalKeyboardKey.numpad2: 2,
+      LogicalKeyboardKey.digit3: 3, LogicalKeyboardKey.numpad3: 3,
+      LogicalKeyboardKey.digit4: 4, LogicalKeyboardKey.numpad4: 4,
+      LogicalKeyboardKey.digit5: 5, LogicalKeyboardKey.numpad5: 5,
+      LogicalKeyboardKey.digit6: 6, LogicalKeyboardKey.numpad6: 6,
+      LogicalKeyboardKey.digit7: 7, LogicalKeyboardKey.numpad7: 7,
+      LogicalKeyboardKey.digit8: 8, LogicalKeyboardKey.numpad8: 8,
+      LogicalKeyboardKey.digit9: 9, LogicalKeyboardKey.numpad9: 9,
+    };
+    if (digitKeys.containsKey(key)) {
+      notifier.enterDigit(digitKeys[key]!);
+      return KeyEventResult.handled;
+    }
+
+    if (key == LogicalKeyboardKey.keyZ) {
+      notifier.undo();
+      return KeyEventResult.handled;
+    }
+    if (key == LogicalKeyboardKey.keyY) {
+      notifier.redo();
+      return KeyEventResult.handled;
+    }
+    if (key == LogicalKeyboardKey.keyN) {
+      notifier.setEntryModeAndMulti(EntryMode.fullNumber, false);
+      return KeyEventResult.handled;
+    }
+    if (key == LogicalKeyboardKey.keyV) {
+      notifier.setEntryModeAndMulti(EntryMode.cornerNote, false);
+      return KeyEventResult.handled;
+    }
+    if (key == LogicalKeyboardKey.keyC) {
+      notifier.setEntryModeAndMulti(EntryMode.centreNote, false);
+      return KeyEventResult.handled;
+    }
+    if (key == LogicalKeyboardKey.keyM) {
+      notifier.toggleMultiSelect();
+      return KeyEventResult.handled;
+    }
+    if (key == LogicalKeyboardKey.delete || key == LogicalKeyboardKey.backspace) {
+      notifier.erase();
+      return KeyEventResult.handled;
+    }
+    if (key == LogicalKeyboardKey.escape) {
+      notifier.deselectAll();
+      return KeyEventResult.handled;
+    }
+
+    return KeyEventResult.ignored;
+  }
+
   @override
   Widget build(BuildContext context) {
     final game = ref.watch(gameProvider);
@@ -85,46 +151,63 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           ),
         ],
       ),
-      body: SafeArea(
-        child: game.isComplete
-            ? _CompletionOverlay(elapsed: game.elapsed)
-            : isLandscape
-                ? _LandscapeLayout(toolbarOnRight: _toolbarOnRight)
-                : const _PortraitLayout(),
+      body: Focus(
+        autofocus: true,
+        onKeyEvent: _handleKeyEvent,
+        child: SafeArea(
+          child: game.isComplete
+              ? _CompletionOverlay(elapsed: game.elapsed)
+              : isLandscape
+                  ? _LandscapeLayout(toolbarOnRight: _toolbarOnRight)
+                  : const _PortraitLayout(),
+        ),
       ),
     );
   }
 }
 
-/// Portrait: grid on top, toolbar at bottom.
+/// Portrait: grid at top with fixed square size; toolbar expands to fill the rest.
 class _PortraitLayout extends StatelessWidget {
   const _PortraitLayout();
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 500),
-                child: const SudokuGrid(),
+    return LayoutBuilder(builder: (context, constraints) {
+      // Reserve up to 58% of the available height for the grid; in portrait the
+      // grid is constrained by width anyway so clamping prevents it from eating
+      // all the space on tall phones.
+      final gridContainerHeight = min(
+        constraints.maxWidth,
+        constraints.maxHeight * 0.58,
+      );
+      return Column(
+        children: [
+          SizedBox(
+            height: gridContainerHeight,
+            child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 500),
+                  child: const SudokuGrid(),
+                ),
               ),
             ),
           ),
-        ),
-        const Padding(
-          padding: EdgeInsets.fromLTRB(8, 0, 8, 16),
-          child: DigitToolbar(),
-        ),
-      ],
-    );
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
+              child: const DigitToolbar(expanded: true),
+            ),
+          ),
+        ],
+      );
+    });
   }
 }
 
-/// Landscape: grid fills the taller dimension; toolbar sits to the left or right.
+/// Landscape: grid fills the taller dimension; toolbar sits to the left or right
+/// and expands to use the full screen height.
 class _LandscapeLayout extends StatelessWidget {
   final bool toolbarOnRight;
   const _LandscapeLayout({required this.toolbarOnRight});
@@ -148,17 +231,18 @@ class _LandscapeLayout extends StatelessWidget {
       ),
     );
 
+    // The toolbar column stretches to the full row height so expanded buttons
+    // can fill the available vertical space.
     final toolbarWidget = SizedBox(
       width: 220,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-        child: SingleChildScrollView(
-          child: const DigitToolbar(),
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        child: const DigitToolbar(expanded: true),
       ),
     );
 
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: toolbarOnRight
           ? [gridWidget, toolbarWidget]
           : [toolbarWidget, gridWidget],
