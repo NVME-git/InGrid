@@ -35,6 +35,9 @@ class GameState {
   final Set<(int, int)> flashNoteCells;     // cells where invalid note was attempted
   final int? flashNoteDigit;                // the digit that was rejected
   final EntryMode? flashNoteMode;           // cornerNote or centreNote
+  /// When set (and selectedCells is empty), tints all cells containing this digit
+  /// with the same-value highlight — used by the long-press digit action.
+  final int? pinnedDigit;
 
   const GameState({
     required this.board,
@@ -51,6 +54,7 @@ class GameState {
     this.flashNoteCells = const {},
     this.flashNoteDigit,
     this.flashNoteMode,
+    this.pinnedDigit,
   });
 
   GameState copyWith({
@@ -70,6 +74,9 @@ class GameState {
     EntryMode? flashNoteMode,
     // Pass clearFlash: true to explicitly null-out all flash fields.
     bool clearFlash = false,
+    int? pinnedDigit,
+    // Pass clearPinnedDigit: true to null-out the pinned digit highlight.
+    bool clearPinnedDigit = false,
   }) {
     return GameState(
       board: board ?? this.board,
@@ -86,6 +93,7 @@ class GameState {
       flashNoteCells: clearFlash ? const {} : (flashNoteCells ?? this.flashNoteCells),
       flashNoteDigit: clearFlash ? null : (flashNoteDigit ?? this.flashNoteDigit),
       flashNoteMode: clearFlash ? null : (flashNoteMode ?? this.flashNoteMode),
+      pinnedDigit: clearPinnedDigit ? null : (pinnedDigit ?? this.pinnedDigit),
     );
   }
 }
@@ -143,7 +151,14 @@ class GameNotifier extends Notifier<GameState> {
         newSelection = {(row, col)};
       }
     }
-    state = state.copyWith(selectedCells: newSelection);
+    state = state.copyWith(selectedCells: newSelection, clearPinnedDigit: true);
+  }
+
+  /// Always adds [row],[col] to the current selection (never removes).
+  /// Used during drag-select so cells only accumulate, never toggle off.
+  void addCellToSelection(int row, int col) {
+    final newSelection = Set<(int, int)>.from(state.selectedCells)..add((row, col));
+    state = state.copyWith(selectedCells: newSelection, clearPinnedDigit: true);
   }
 
   void toggleMultiSelect() {
@@ -151,7 +166,7 @@ class GameNotifier extends Notifier<GameState> {
   }
 
   void deselectAll() {
-    state = state.copyWith(selectedCells: const {});
+    state = state.copyWith(selectedCells: const {}, clearPinnedDigit: true);
   }
 
   void setEntryMode(EntryMode mode) {
@@ -159,12 +174,72 @@ class GameNotifier extends Notifier<GameState> {
   }
 
   /// Sets entry mode and multi-select state in one atomic update.
+  /// Switching from multi-select to single-select also deselects all cells.
   void setEntryModeAndMulti(EntryMode mode, bool multi) {
-    state = state.copyWith(entryMode: mode, multiSelectMode: multi);
+    final wasMulti = state.multiSelectMode;
+    final selectedCells =
+        (wasMulti && !multi) ? const <(int, int)>{} : state.selectedCells;
+    state = state.copyWith(
+      entryMode: mode,
+      multiSelectMode: multi,
+      selectedCells: selectedCells,
+    );
   }
 
   void setHighlightColor(int index) {
     state = state.copyWith(highlightColorIndex: index);
+  }
+
+  /// Long-press a digit button for ~1 s:
+  /// • If the current selection contains writable cells (non-given, digit == null):
+  ///   place [digit] in each such cell, skipping any where it would conflict.
+  /// • Otherwise (no selection or all selected are givens):
+  ///   pin [digit] so every board cell carrying that value is tinted.
+  void longPressDigit(int digit) {
+    final sel = state.selectedCells;
+    final writableCells = sel
+        .where((pos) {
+          final cell = state.board.cellAt(pos.$1, pos.$2);
+          return !cell.isGiven && cell.digit == null;
+        })
+        .toList();
+
+    if (writableCells.isEmpty) {
+      // No writable cells selected — show same-value highlight for this digit.
+      state = state.copyWith(
+        pinnedDigit: digit,
+        selectedCells: const {},
+      );
+      return;
+    }
+
+    // Write digit to every writable cell that has no conflict.
+    final newBoard = state.board.copy();
+    final affected = <(int, int)>[];
+    for (final (r, c) in writableCells) {
+      if (SudokuValidator.isValidPlacement(newBoard, r, c, digit)) {
+        final cell = newBoard.cells[r][c];
+        cell.digit = digit;
+        cell.cornerNotes.clear();
+        cell.centreNotes.clear();
+        affected.add((r, c));
+      }
+    }
+    if (affected.isEmpty) return;
+    _saveUndoSnapshot();
+    _redoStack.clear();
+    _recorder.record(MoveRecord(
+      type: MoveType.placeDigit,
+      timestamp: DateTime.now(),
+      cells: affected,
+      value: digit,
+    ));
+    final conflicts = SudokuValidator.findConflicts(newBoard);
+    state = state.copyWith(
+      board: newBoard,
+      conflicts: conflicts,
+      isComplete: newBoard.isSolved && conflicts.isEmpty,
+    );
   }
 
   void enterDigit(int digit) {

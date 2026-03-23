@@ -30,9 +30,9 @@ class DigitToolbar extends ConsumerWidget {
         // ── Row 1: Undo | 1 | 2 | 3 | Num (single mode) ──────────────────
         _ToolRow(children: [
           _ActionBtn(icon: Icons.undo, label: 'Undo', onTap: notifier.undo),
-          _DigitBtn(digit: 1, disabled: isColor, onEnter: notifier.enterDigit),
-          _DigitBtn(digit: 2, disabled: isColor, onEnter: notifier.enterDigit),
-          _DigitBtn(digit: 3, disabled: isColor, onEnter: notifier.enterDigit),
+          _DigitBtn(digit: 1, disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
+          _DigitBtn(digit: 2, disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
+          _DigitBtn(digit: 3, disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
           _ModeBtn(
             label: 'Num',
             icon: Icons.grid_4x4,
@@ -44,9 +44,9 @@ class DigitToolbar extends ConsumerWidget {
         // ── Row 2: Redo | 4 | 5 | 6 | Corner (single mode) ───────────────
         _ToolRow(children: [
           _ActionBtn(icon: Icons.redo, label: 'Redo', onTap: notifier.redo),
-          _DigitBtn(digit: 4, disabled: isColor, onEnter: notifier.enterDigit),
-          _DigitBtn(digit: 5, disabled: isColor, onEnter: notifier.enterDigit),
-          _DigitBtn(digit: 6, disabled: isColor, onEnter: notifier.enterDigit),
+          _DigitBtn(digit: 4, disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
+          _DigitBtn(digit: 5, disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
+          _DigitBtn(digit: 6, disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
           _ModeBtn(
             label: 'Corner',
             icon: Icons.format_list_numbered,
@@ -58,9 +58,9 @@ class DigitToolbar extends ConsumerWidget {
         // ── Row 3: Deselect | 7 | 8 | 9 | Centre (single mode) ───────────
         _ToolRow(children: [
           _ActionBtn(icon: Icons.deselect, label: 'Desel', onTap: notifier.deselectAll),
-          _DigitBtn(digit: 7, disabled: isColor, onEnter: notifier.enterDigit),
-          _DigitBtn(digit: 8, disabled: isColor, onEnter: notifier.enterDigit),
-          _DigitBtn(digit: 9, disabled: isColor, onEnter: notifier.enterDigit),
+          _DigitBtn(digit: 7, disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
+          _DigitBtn(digit: 8, disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
+          _DigitBtn(digit: 9, disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
           _ModeBtn(
             label: 'Centre',
             icon: Icons.notes,
@@ -134,14 +134,16 @@ class _ToolRow extends StatelessWidget {
 class _Btn extends StatelessWidget {
   final Widget child;
   final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
   final bool active;
 
-  const _Btn({required this.child, this.onTap, this.active = false});
+  const _Btn({required this.child, this.onTap, this.onLongPress, this.active = false});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
+      onLongPress: onLongPress,
       child: Container(
         height: 40,
         alignment: Alignment.center,
@@ -156,18 +158,25 @@ class _Btn extends StatelessWidget {
 }
 
 /// Digit button (1-9). Grayed out and non-interactive in Color mode.
+/// Tap: enter digit in current mode. Long-press: smart write or highlight.
 class _DigitBtn extends StatelessWidget {
   final int digit;
   final bool disabled;
   final void Function(int) onEnter;
+  final void Function(int) onLongPress;
 
-  const _DigitBtn(
-      {required this.digit, required this.disabled, required this.onEnter});
+  const _DigitBtn({
+    required this.digit,
+    required this.disabled,
+    required this.onEnter,
+    required this.onLongPress,
+  });
 
   @override
   Widget build(BuildContext context) {
     return _Btn(
       onTap: disabled ? null : () => onEnter(digit),
+      onLongPress: disabled ? null : () => onLongPress(digit),
       child: Text(
         '$digit',
         style: TextStyle(

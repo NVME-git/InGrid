@@ -23,6 +23,7 @@ class SudokuGrid extends ConsumerStatefulWidget {
 
 class _SudokuGridState extends ConsumerState<SudokuGrid> {
   bool _isDragging = false;
+  final _gridKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
@@ -52,14 +53,19 @@ class _SudokuGridState extends ConsumerState<SudokuGrid> {
       }
     }
 
-    // ── Cells with the same digit as any selected cell ───────────────────────
+    // ── Cells with the same digit as any selected cell (or pinned digit) ────
     final Set<(int, int)> sameValueCells = {};
-    if (selectedDigits.isNotEmpty) {
+    // If no cells are selected but a digit is pinned (long-press highlight),
+    // treat the pinned digit as the "selected" digit.
+    final effectiveDigits = selectedDigits.isNotEmpty
+        ? selectedDigits
+        : (game.pinnedDigit != null ? {game.pinnedDigit!} : <int>{});
+    if (effectiveDigits.isNotEmpty) {
       for (int r = 0; r < 9; r++) {
         for (int c = 0; c < 9; c++) {
           if (!selected.contains((r, c))) {
             final d = board.cellAt(r, c).digit;
-            if (d != null && selectedDigits.contains(d)) {
+            if (d != null && effectiveDigits.contains(d)) {
               sameValueCells.add((r, c));
             }
           }
@@ -77,8 +83,22 @@ class _SudokuGridState extends ConsumerState<SudokuGrid> {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(2),
           child: GestureDetector(
-            onPanStart: (_) => _isDragging = true,
+            key: _gridKey,
+            onPanStart: (details) {
+              _isDragging = true;
+              // Select the initial cell additively so drag always accumulates.
+              final rb = _gridKey.currentContext?.findRenderObject() as RenderBox?;
+              if (rb != null) {
+                final size = rb.size;
+                final row =
+                    ((details.localPosition.dy / size.height) * 9).clamp(0.0, 8.99).toInt();
+                final col =
+                    ((details.localPosition.dx / size.width) * 9).clamp(0.0, 8.99).toInt();
+                ref.read(gameProvider.notifier).addCellToSelection(row, col);
+              }
+            },
             onPanEnd: (_) => _isDragging = false,
+            onPanCancel: () => _isDragging = false,
             child: GridView.builder(
               physics: const NeverScrollableScrollPhysics(),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -113,7 +133,7 @@ class _SudokuGridState extends ConsumerState<SudokuGrid> {
                     if (_isDragging) {
                       ref
                           .read(gameProvider.notifier)
-                          .selectCell(row, col, addToSelection: true);
+                          .addCellToSelection(row, col);
                     }
                   },
                 );
