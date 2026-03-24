@@ -93,11 +93,14 @@ class _SudokuGridState extends ConsumerState<SudokuGrid> {
       }
     }
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final boxColor = isDark ? const Color(0xFFCCCCCC) : Colors.grey.shade600;
+
     return AspectRatio(
       aspectRatio: 1,
       child: Container(
         decoration: BoxDecoration(
-          border: Border.all(color: _kBoxColor, width: _kBoxBorder),
+          border: Border.all(color: boxColor, width: _kBoxBorder),
           borderRadius: BorderRadius.circular(2),
         ),
         child: ClipRRect(
@@ -227,8 +230,10 @@ class _SudokuCell extends StatelessWidget {
     return _kCellBorder;
   }
 
-  static Color _leftC(int col) => col % 3 == 0 ? _kBoxColor : _kCellColor;
-  static Color _topC(int row) => row % 3 == 0 ? _kBoxColor : _kCellColor;
+  static Color _leftC(int col, {required Color boxColor, required Color cellColor}) =>
+      col % 3 == 0 ? boxColor : cellColor;
+  static Color _topC(int row, {required Color boxColor, required Color cellColor}) =>
+      row % 3 == 0 ? boxColor : cellColor;
 
   @override
   Widget build(BuildContext context) {
@@ -261,12 +266,19 @@ class _SudokuCell extends StatelessWidget {
         onEnter: (_) => onDragEnter(),
         child: LayoutBuilder(builder: (ctx, constraints) {
           final cellSize = constraints.maxWidth;
+          final isDark = Theme.of(ctx).brightness == Brightness.dark;
+          final boxColor = isDark ? const Color(0xFFCCCCCC) : Colors.grey.shade600;
+          final cellColor = isDark ? const Color(0x44FFFFFF) : Colors.grey.shade400;
           return Container(
             decoration: BoxDecoration(
               color: bgColor,
               border: Border(
-                left: BorderSide(color: _leftC(col), width: _leftW(col)),
-                top: BorderSide(color: _topC(row), width: _topW(row)),
+                left: BorderSide(
+                    color: _leftC(col, boxColor: boxColor, cellColor: cellColor),
+                    width: _leftW(col)),
+                top: BorderSide(
+                    color: _topC(row, boxColor: boxColor, cellColor: cellColor),
+                    width: _topW(row)),
               ),
             ),
             child: _buildCellContent(ctx, cellSize),
