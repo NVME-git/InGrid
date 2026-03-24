@@ -65,9 +65,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const Text(
+                  Text(
                     'Sudoku',
-                    style: TextStyle(fontSize: 18, color: Colors.white54),
+                    style: TextStyle(fontSize: 18, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54)),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 32),
