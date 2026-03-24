@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/engine/engine.dart';
+import '../../services/persistence_service.dart';
 
 enum EntryMode { fullNumber, cornerNote, centreNote, highlighter }
 
@@ -43,6 +44,9 @@ class GameState {
   final bool autoCandidates;
   /// When true the timer is stopped and a pause overlay hides the grid.
   final bool isPaused;
+  /// The 81-char givens string saved when the game was first started,
+  /// used to record the original puzzle in history.
+  final String initialBoard;
 
   const GameState({
     required this.board,
@@ -62,6 +66,7 @@ class GameState {
     this.pinnedDigit,
     this.autoCandidates = false,
     this.isPaused = false,
+    this.initialBoard = '',
   });
 
   GameState copyWith({
@@ -86,6 +91,7 @@ class GameState {
     bool clearPinnedDigit = false,
     bool? autoCandidates,
     bool? isPaused,
+    String? initialBoard,
   }) {
     return GameState(
       board: board ?? this.board,
@@ -105,6 +111,7 @@ class GameState {
       pinnedDigit: clearPinnedDigit ? null : (pinnedDigit ?? this.pinnedDigit),
       autoCandidates: autoCandidates ?? this.autoCandidates,
       isPaused: isPaused ?? this.isPaused,
+      initialBoard: initialBoard ?? this.initialBoard,
     );
   }
 }
@@ -129,11 +136,14 @@ class GameNotifier extends Notifier<GameState> {
     _undoStack.clear();
     _redoStack.clear();
     final board = SudokuGenerator.generate(difficulty);
+    final initialBoard = PersistenceService.boardToGivensString(board);
     state = GameState(
       board: board,
       difficulty: difficulty,
       conflicts: SudokuValidator.findConflicts(board),
+      initialBoard: initialBoard,
     );
+    _autoSave();
   }
 
   void startManualEntry() {
@@ -141,6 +151,58 @@ class GameNotifier extends Notifier<GameState> {
     _undoStack.clear();
     _redoStack.clear();
     state = GameState(board: SudokuBoard.empty());
+    PersistenceService.clearCurrentGame();
+  }
+
+  /// Load a previously saved in-progress game from local storage.
+  Future<bool> loadSavedGame() async {
+    final saved = await PersistenceService.loadCurrentGame();
+    if (saved == null) return false;
+    _recorder.clear();
+    _undoStack.clear();
+    _redoStack.clear();
+    final board = PersistenceService.restoreBoard(saved);
+    state = GameState(
+      board: board,
+      difficulty: saved.difficulty,
+      elapsed: saved.elapsed,
+      conflicts: SudokuValidator.findConflicts(board),
+      initialBoard: saved.initialBoard,
+    );
+    return true;
+  }
+
+  /// Check if a saved game exists in storage.
+  Future<SavedGame?> checkSavedGame() =>
+      PersistenceService.loadCurrentGame();
+
+  void _autoSave() {
+    if (state.initialBoard.isEmpty) return;
+    PersistenceService.saveCurrentGame(
+      board: state.board,
+      difficulty: state.difficulty,
+      elapsed: state.elapsed,
+      initialBoard: state.initialBoard,
+    );
+  }
+
+  void _saveToHistoryAndClearCurrent() {
+    final record = PersistenceService.buildRecord(
+      board: state.board,
+      difficulty: state.difficulty,
+      elapsed: state.elapsed,
+      isComplete: state.isComplete,
+      initialBoard: state.initialBoard,
+    );
+    PersistenceService.saveToHistory(record);
+    if (state.isComplete) {
+      PersistenceService.recordCompletion(
+        difficulty: state.difficulty,
+        elapsed: state.elapsed,
+        date: DateTime.now(),
+      );
+      PersistenceService.clearCurrentGame();
+    }
   }
 
   void selectCell(int row, int col, {bool toggle = false, bool addToSelection = false}) {
@@ -251,6 +313,8 @@ class GameNotifier extends Notifier<GameState> {
       conflicts: conflicts,
       isComplete: newBoard.isSolved && conflicts.isEmpty,
     );
+    _autoSave();
+    if (state.isComplete) _saveToHistoryAndClearCurrent();
   }
 
   void enterDigit(int digit) {
@@ -351,6 +415,7 @@ class GameNotifier extends Notifier<GameState> {
           cells: affected,
           value: digit,
         ));
+        _autoSave();
       }
       return;
     }
@@ -378,6 +443,8 @@ class GameNotifier extends Notifier<GameState> {
       isComplete: complete,
       conflicts: conflicts,
     );
+    _autoSave();
+    if (complete) _saveToHistoryAndClearCurrent();
   }
 
   /// Returns the cells in the same row, column, or 3×3 box as [row],[col]
@@ -465,6 +532,7 @@ class GameNotifier extends Notifier<GameState> {
 
     final conflicts = SudokuValidator.findConflicts(newBoard);
     state = state.copyWith(board: newBoard, conflicts: conflicts, isComplete: false);
+    _autoSave();
   }
 
   void undo() {
@@ -473,6 +541,7 @@ class GameNotifier extends Notifier<GameState> {
     final prevBoard = _undoStack.removeLast();
     final conflicts = SudokuValidator.findConflicts(prevBoard);
     state = state.copyWith(board: prevBoard, conflicts: conflicts, isComplete: false);
+    _autoSave();
   }
 
   void redo() {
@@ -482,10 +551,14 @@ class GameNotifier extends Notifier<GameState> {
     final conflicts = SudokuValidator.findConflicts(nextBoard);
     final complete = nextBoard.isSolved && conflicts.isEmpty;
     state = state.copyWith(board: nextBoard, conflicts: conflicts, isComplete: complete);
+    _autoSave();
+    if (complete) _saveToHistoryAndClearCurrent();
   }
 
   void updateTimer(Duration elapsed) {
     state = state.copyWith(elapsed: elapsed);
+    // Auto-save every 15 seconds to persist elapsed time.
+    if (elapsed.inSeconds % 15 == 0) _autoSave();
   }
 
   void toggleConflicts() {

@@ -51,6 +51,28 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     return '${m.toString().padLeft(2, '0')}:$s';
   }
 
+  void _showHelpDialog(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A2E),
+        title: const Text(
+          'How to Play InGrid',
+          style: TextStyle(color: Color(0xFF0D9488), fontWeight: FontWeight.bold),
+        ),
+        content: const SingleChildScrollView(
+          child: _HelpContent(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Got it', style: TextStyle(color: Color(0xFF0D9488))),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _shareBoard() {
     final board = ref.read(gameProvider).board;
     final buf = StringBuffer();
@@ -206,10 +228,10 @@ class _GameScreenState extends ConsumerState<GameScreen> {
             tooltip: game.isPaused ? 'Resume' : 'Pause',
             onPressed: notifier.togglePause,
           ),
-          // Auto-candidates toggle
+          // Auto-candidates toggle (distinct icon from hints)
           IconButton(
             icon: Icon(
-              Icons.lightbulb_outline,
+              Icons.format_list_numbered_rtl,
               color: game.autoCandidates
                   ? const Color(0xFF0D9488)
                   : Colors.white70,
@@ -231,6 +253,12 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                 ),
               );
             },
+          ),
+          // Help / how to play
+          IconButton(
+            icon: const Icon(Icons.help_outline, color: Colors.white54),
+            tooltip: 'How to play',
+            onPressed: () => _showHelpDialog(context),
           ),
           // Conflict-highlight toggle (starts off)
           IconButton(
@@ -408,6 +436,68 @@ class _CompletionOverlay extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+// ── Help content ─────────────────────────────────────────────────────────────
+
+class _HelpContent extends StatelessWidget {
+  const _HelpContent();
+
+  @override
+  Widget build(BuildContext context) {
+    const ts = TextStyle(color: Colors.white70, fontSize: 13, height: 1.5);
+    const ths = TextStyle(
+      color: Color(0xFF0D9488),
+      fontSize: 13,
+      fontWeight: FontWeight.bold,
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: const [
+        Text('Goal', style: ths),
+        Text(
+          'Fill every cell with a digit 1–9 so each row, column, and '
+          '3×3 box contains every digit exactly once.',
+          style: ts,
+        ),
+        SizedBox(height: 12),
+        Text('Modes', style: ths),
+        Text('Num — place a digit in the selected cell', style: ts),
+        Text('Corner — add small corner pencil-marks', style: ts),
+        Text('Centre — add a larger centre pencil-mark', style: ts),
+        Text('Color — paint a cell with a highlight colour', style: ts),
+        SizedBox(height: 12),
+        Text('Toolbar buttons', style: ths),
+        Text('Undo / Redo — step back or forward through your moves', style: ts),
+        Text('Desel — clear the current cell selection', style: ts),
+        Text('Erase — remove the digit or notes from selected cells', style: ts),
+        Text('Multi-Nums / Multi-Crnrs / Multi-Cntrs — activate multi-cell '
+            'mode: drag across cells to select many at once, then enter a digit '
+            'to fill them all', style: ts),
+        SizedBox(height: 12),
+        Text('AppBar icons', style: ths),
+        Text('⏸ Pause — hide the grid and stop the timer', style: ts),
+        Text('≡ Candidates — show computed candidates for empty cells', style: ts),
+        Text('💡 Hints — coming soon', style: ts),
+        Text('? Help — this dialog', style: ts),
+        Text('👁 Conflicts — highlight cells that break Sudoku rules', style: ts),
+        SizedBox(height: 12),
+        Text('Keyboard shortcuts (web)', style: ths),
+        Text('1–9  Enter digit   N  Number mode   V  Corner mode   C  Centre mode', style: ts),
+        Text('M  Toggle multi-select   Z  Undo   Y  Redo   P  Pause', style: ts),
+        Text('Delete / Backspace  Erase   Escape  Deselect all', style: ts),
+        SizedBox(height: 12),
+        Text('Long-press a digit button', style: ths),
+        Text(
+          'If writable cells are selected: fills them with that digit '
+          '(skips conflicts). If no cells are selected: highlights all '
+          'matching cells and their peers to show candidate positions.',
+          style: ts,
+        ),
+      ],
     );
   }
 }
