@@ -93,6 +93,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           'Game History',
           style: TextStyle(color: Color(0xFF0D9488), fontWeight: FontWeight.bold),
         ),
+        centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.white70),
       ),
       body: _loading

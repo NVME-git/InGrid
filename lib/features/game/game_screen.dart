@@ -381,7 +381,7 @@ class _LandscapeLayout extends StatelessWidget {
     // The toolbar column stretches to the full row height so expanded buttons
     // can fill the available vertical space.
     final toolbarWidget = SizedBox(
-      width: 220,
+      width: 260,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         child: const DigitToolbar(expanded: true),

@@ -57,6 +57,7 @@ class _StatsScreenState extends State<StatsScreen> {
           'Statistics',
           style: TextStyle(color: Color(0xFF0D9488), fontWeight: FontWeight.bold),
         ),
+        centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.white70),
       ),
       body: _loading
