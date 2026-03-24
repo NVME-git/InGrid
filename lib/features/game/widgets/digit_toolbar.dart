@@ -49,7 +49,7 @@ class DigitToolbar extends ConsumerWidget {
       _DigitBtn(digit: 3, remaining: remaining[2], disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
       _ModeBtn(
         label: 'Num',
-        icon: Icons.grid_4x4,
+        icon: Icons.tag,
         active: mode == EntryMode.fullNumber && !multi,
         onTap: () => notifier.setEntryModeAndMulti(EntryMode.fullNumber, false),
       ),
@@ -61,7 +61,7 @@ class DigitToolbar extends ConsumerWidget {
       _DigitBtn(digit: 6, remaining: remaining[5], disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
       _ModeBtn(
         label: 'Corner',
-        icon: Icons.format_list_numbered,
+        icon: Icons.crop_square,
         active: mode == EntryMode.cornerNote && !multi,
         onTap: () => notifier.setEntryModeAndMulti(EntryMode.cornerNote, false),
       ),
@@ -73,7 +73,7 @@ class DigitToolbar extends ConsumerWidget {
       _DigitBtn(digit: 9, remaining: remaining[8], disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
       _ModeBtn(
         label: 'Centre',
-        icon: Icons.notes,
+        icon: Icons.adjust,
         active: mode == EntryMode.centreNote && !multi,
         onTap: () => notifier.setEntryModeAndMulti(EntryMode.centreNote, false),
       ),
@@ -82,7 +82,7 @@ class DigitToolbar extends ConsumerWidget {
       _ActionBtn(icon: Icons.backspace_outlined, label: 'Erase', onTap: notifier.erase),
       _ModeBtn(
         label: 'Multi-Nums',
-        icon: Icons.tag,
+        icon: Icons.grid_4x4,
         active: mode == EntryMode.fullNumber && multi,
         onTap: () => notifier.setEntryModeAndMulti(EntryMode.fullNumber, true),
       ),
@@ -94,7 +94,7 @@ class DigitToolbar extends ConsumerWidget {
       ),
       _ModeBtn(
         label: 'Multi-Cntrs',
-        icon: Icons.control_camera,
+        icon: Icons.blur_on,
         active: mode == EntryMode.centreNote && multi,
         onTap: () => notifier.setEntryModeAndMulti(EntryMode.centreNote, true),
       ),

@@ -161,17 +161,32 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF1A1A2E),
         foregroundColor: Colors.white,
-        leadingWidth: 72,
-        leading: const Center(
-          child: Text(
-            'InGrid',
-            style: TextStyle(
-              color: Color(0xFF0D9488),
-              fontSize: 17,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.5,
+        leadingWidth: 108,
+        leading: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const SizedBox(width: 8),
+            const Text(
+              'InGrid',
+              style: TextStyle(
+                color: Color(0xFF0D9488),
+                fontSize: 17,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.5,
+              ),
             ),
-          ),
+            SizedBox(
+              width: 36,
+              height: 36,
+              child: IconButton(
+                icon: const Icon(Icons.share_outlined, size: 17, color: Colors.white70),
+                tooltip: 'Copy board to clipboard',
+                onPressed: _shareBoard,
+                padding: EdgeInsets.zero,
+              ),
+            ),
+          ],
         ),
         title: GestureDetector(
           onTap: () => setState(() => _timerShowSeconds = !_timerShowSeconds),
@@ -204,13 +219,20 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                 : 'Show auto candidates',
             onPressed: notifier.toggleAutoCandidates,
           ),
-          // Share board state
+          // Hints (non-functional placeholder for future feature)
           IconButton(
-            icon: const Icon(Icons.share_outlined, color: Colors.white70),
-            tooltip: 'Copy board to clipboard',
-            onPressed: _shareBoard,
+            icon: const Icon(Icons.tips_and_updates_outlined, color: Colors.white38),
+            tooltip: 'Hints (coming soon)',
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Hints coming soon!'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            },
           ),
-          // Conflict-highlight toggle
+          // Conflict-highlight toggle (starts off)
           IconButton(
             icon: Icon(
               game.showConflicts ? Icons.visibility : Icons.visibility_off,

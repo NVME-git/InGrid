@@ -49,7 +49,7 @@ class GameState {
     this.selectedCells = const {},
     this.entryMode = EntryMode.fullNumber,
     this.highlightColorIndex = 0,
-    this.showConflicts = true,
+    this.showConflicts = false,
     this.difficulty = Difficulty.medium,
     this.elapsed = Duration.zero,
     this.isComplete = false,

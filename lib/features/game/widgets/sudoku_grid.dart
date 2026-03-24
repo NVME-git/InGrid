@@ -134,13 +134,11 @@ class _SudokuGridState extends ConsumerState<SudokuGrid> {
                 final isFlashConflict = game.flashConflictCells.contains((row, col));
                 final isFlashNoteAttempt = game.flashNoteCells.contains((row, col));
 
-                // Compute auto-candidate notes: shown for empty cells with no user
-                // notes when auto-candidates mode is active.
+                // Compute auto-candidate notes for ALL empty cells when auto-candidates
+                // is on. This temporarily overrides the display of user notes (they are
+                // preserved on the board and reappear when auto-candidates is toggled off).
                 Set<int>? autoCandidateNotes;
-                if (game.autoCandidates &&
-                    cell.digit == null &&
-                    cell.cornerNotes.isEmpty &&
-                    cell.centreNotes.isEmpty) {
+                if (game.autoCandidates && cell.digit == null) {
                   autoCandidateNotes = {};
                   for (int d = 1; d <= 9; d++) {
                     if (SudokuValidator.isValidPlacement(board, row, col, d)) {
@@ -312,14 +310,16 @@ class _SudokuCell extends StatelessWidget {
     if (hasNotes || isFlashNoteAttempt) {
       return Stack(
         children: [
-          if (cell.cornerNotes.isNotEmpty)
-            _CornerNotes(notes: cell.cornerNotes, fontSize: cornerFontSize)
-          else if (hasAutoNotes)
+          // When auto-candidates is on, show computed notes (overriding user notes
+          // visually). User notes are preserved on the board and reappear when toggled off.
+          if (hasAutoNotes)
             _CornerNotes(
                 notes: autoCandidateNotes!,
                 fontSize: cornerFontSize,
-                textColor: Colors.white30),
-          if (cell.centreNotes.isNotEmpty)
+                textColor: Colors.white30)
+          else if (cell.cornerNotes.isNotEmpty)
+            _CornerNotes(notes: cell.cornerNotes, fontSize: cornerFontSize),
+          if (cell.centreNotes.isNotEmpty && !hasAutoNotes)
             Center(
               child: Text(
                 (cell.centreNotes.toList()..sort()).join(),
