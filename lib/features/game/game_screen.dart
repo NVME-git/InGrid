@@ -60,7 +60,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     final key = event.logicalKey;
 
     // Digit keys 1-9 (main keyboard and numpad)
-    const digitKeys = {
+    final digitKeys = {
       LogicalKeyboardKey.digit1: 1, LogicalKeyboardKey.numpad1: 1,
       LogicalKeyboardKey.digit2: 2, LogicalKeyboardKey.numpad2: 2,
       LogicalKeyboardKey.digit3: 3, LogicalKeyboardKey.numpad3: 3,
