@@ -173,24 +173,20 @@ class _PortraitLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
-      // Reserve up to 58% of the available height for the grid; in portrait the
-      // grid is constrained by width anyway so clamping prevents it from eating
-      // all the space on tall phones.
+      // Give the grid up to 65% of available height; width is the binding
+      // constraint on web where the window is wide but not very tall.
       final gridContainerHeight = min(
         constraints.maxWidth,
-        constraints.maxHeight * 0.58,
+        constraints.maxHeight * 0.65,
       );
       return Column(
         children: [
           SizedBox(
             height: gridContainerHeight,
             child: Padding(
-              padding: const EdgeInsets.all(12.0),
+              padding: const EdgeInsets.all(8.0),
               child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 500),
-                  child: const SudokuGrid(),
-                ),
+                child: const SudokuGrid(),
               ),
             ),
           ),
@@ -216,16 +212,11 @@ class _LandscapeLayout extends StatelessWidget {
   Widget build(BuildContext context) {
     final gridWidget = Expanded(
       child: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(4.0),
         child: Center(
           child: AspectRatio(
             aspectRatio: 1,
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height,
-              ),
-              child: const SudokuGrid(),
-            ),
+            child: const SudokuGrid(),
           ),
         ),
       ),

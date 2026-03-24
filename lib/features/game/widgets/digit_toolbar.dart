@@ -87,12 +87,12 @@ class DigitToolbar extends ConsumerWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.lightbulb_outline, size: 13,
+          Icon(Icons.lightbulb_outline, size: 16,
               color: game.autoCandidates ? Colors.white : Colors.white70),
           const SizedBox(width: 4),
           Text('Auto Candidates',
               style: TextStyle(
-                  fontSize: 8,
+                  fontSize: 12,
                   color: game.autoCandidates ? Colors.white : Colors.white70)),
         ],
       ),
@@ -242,11 +242,11 @@ class _ModeBtn extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 13, color: active ? Colors.white : Colors.white70),
+          Icon(icon, size: 16, color: active ? Colors.white : Colors.white70),
           Text(
             label,
             style: TextStyle(
-                fontSize: 8, color: active ? Colors.white : Colors.white70),
+                fontSize: 11, color: active ? Colors.white : Colors.white70),
           ),
         ],
       ),
@@ -270,9 +270,9 @@ class _ActionBtn extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 15, color: Colors.white70),
+          Icon(icon, size: 18, color: Colors.white70),
           Text(label,
-              style: const TextStyle(fontSize: 8, color: Colors.white70)),
+              style: const TextStyle(fontSize: 11, color: Colors.white70)),
         ],
       ),
     );
