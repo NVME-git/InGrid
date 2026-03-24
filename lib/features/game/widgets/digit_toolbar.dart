@@ -181,7 +181,9 @@ class _Btn extends StatelessWidget {
         constraints: const BoxConstraints(minHeight: 40),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: active ? const Color(0xFF0D9488) : Colors.white12,
+          color: active
+              ? const Color(0xFF0D9488)
+              : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(6),
         ),
         child: child,
@@ -222,14 +224,18 @@ class _DigitBtn extends StatelessWidget {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: effectivelyDisabled ? Colors.white24 : Colors.white,
+              color: effectivelyDisabled
+                  ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.24)
+                  : Theme.of(context).colorScheme.onSurface,
             ),
           ),
           Text(
             '$remaining',
             style: TextStyle(
               fontSize: 10,
-              color: effectivelyDisabled ? Colors.white24 : Colors.white54,
+              color: effectivelyDisabled
+                  ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.24)
+                  : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54),
             ),
           ),
         ],
@@ -260,13 +266,19 @@ class _ModeBtn extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: active ? Colors.white : Colors.white70),
+          Icon(icon, size: 16,
+              color: active
+                  ? Theme.of(context).colorScheme.onPrimary
+                  : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)),
           Text(
             label,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-                fontSize: 10, color: active ? Colors.white : Colors.white70),
+                fontSize: 10,
+                color: active
+                    ? Theme.of(context).colorScheme.onPrimary
+                    : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)),
           ),
         ],
       ),
@@ -290,9 +302,12 @@ class _ActionBtn extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 18, color: Colors.white70),
+          Icon(icon, size: 18,
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)),
           Text(label,
-              style: const TextStyle(fontSize: 11, color: Colors.white70)),
+              style: TextStyle(
+                  fontSize: 11,
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7))),
         ],
       ),
     );
@@ -322,7 +337,9 @@ class _ColorPickerRow extends StatelessWidget {
                 color: Color(kHighlightColors[i]),
                 shape: BoxShape.circle,
                 border: selectedIndex == i
-                    ? Border.all(color: Colors.white, width: 2)
+                    ? Border.all(
+                        color: Theme.of(context).colorScheme.onSurface,
+                        width: 2)
                     : null,
               ),
             ),
@@ -334,10 +351,12 @@ class _ColorPickerRow extends StatelessWidget {
             width: 24,
             height: 24,
             decoration: BoxDecoration(
-              color: Colors.white24,
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.24),
               shape: BoxShape.circle,
               border: selectedIndex == -1
-                  ? Border.all(color: Colors.white, width: 2)
+                  ? Border.all(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      width: 2)
                   : null,
             ),
             child: const Center(

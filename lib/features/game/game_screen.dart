@@ -56,22 +56,24 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   void _showHelpDialog(BuildContext context) {
     showDialog<void>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A2E),
-        title: const Text(
-          'How to Play InGrid',
-          style: TextStyle(color: Color(0xFF0D9488), fontWeight: FontWeight.bold),
-        ),
-        content: const SingleChildScrollView(
-          child: _HelpContent(),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Got it', style: TextStyle(color: Color(0xFF0D9488))),
+      builder: (ctx) {
+        final teal = const Color(0xFF0D9488);
+        return AlertDialog(
+          title: Text(
+            'How to Play InGrid',
+            style: TextStyle(color: teal, fontWeight: FontWeight.bold),
           ),
-        ],
-      ),
+          content: const SingleChildScrollView(
+            child: _HelpContent(),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: Text('Got it', style: TextStyle(color: teal)),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -181,10 +183,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         MediaQuery.of(context).orientation == Orientation.landscape;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A2E),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1A2E),
-        foregroundColor: Colors.white,
         leadingWidth: 108,
         leading: Row(
           mainAxisSize: MainAxisSize.min,
@@ -207,7 +206,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
               width: 36,
               height: 36,
               child: IconButton(
-                icon: const Icon(Icons.share_outlined, size: 17, color: Colors.white70),
+                icon: Icon(Icons.share_outlined, size: 17,
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)),
                 tooltip: 'Copy board to clipboard',
                 onPressed: _shareBoard,
                 padding: EdgeInsets.zero,
@@ -228,7 +228,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           IconButton(
             icon: Icon(
               game.isPaused ? Icons.play_arrow : Icons.pause,
-              color: Colors.white70,
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
             ),
             tooltip: game.isPaused ? 'Resume' : 'Pause',
             onPressed: notifier.togglePause,
@@ -239,7 +239,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
               Icons.edit_outlined,
               color: game.autoCandidates
                   ? const Color(0xFF0D9488)
-                  : Colors.white70,
+                  : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
             ),
             tooltip: game.autoCandidates
                 ? 'Hide auto candidates'
@@ -248,7 +248,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           ),
           // Hints (non-functional placeholder for future feature)
           IconButton(
-            icon: const Icon(Icons.tips_and_updates_outlined, color: Colors.white38),
+            icon: Icon(Icons.tips_and_updates_outlined,
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.38)),
             tooltip: 'Hints (coming soon)',
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -263,7 +264,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           IconButton(
             icon: Icon(
               game.showConflicts ? Icons.visibility : Icons.visibility_off,
-              color: Colors.white70,
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
             ),
             tooltip: 'Toggle conflict highlights',
             onPressed: notifier.toggleConflicts,
@@ -273,7 +274,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
             IconButton(
               icon: Icon(
                 _toolbarOnRight ? Icons.border_right : Icons.border_left,
-                color: Colors.white70,
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
               ),
               tooltip: _toolbarOnRight
                   ? 'Move controls to left'
@@ -282,7 +283,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
             ),
           // Help / how to play
           IconButton(
-            icon: const Icon(Icons.help_outline, color: Colors.white54),
+            icon: Icon(Icons.help_outline,
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54)),
             tooltip: 'How to play',
             onPressed: () => _showHelpDialog(context),
           ),
@@ -292,7 +294,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
               ref.watch(themeProvider) == ThemeMode.dark
                   ? Icons.light_mode
                   : Icons.dark_mode,
-              color: Colors.white70,
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
             ),
             tooltip: ref.watch(themeProvider) == ThemeMode.dark
                 ? 'Switch to light mode'
@@ -403,17 +405,19 @@ class _PauseOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bg = Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.93);
+    final fg = Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54);
     return Container(
-      color: const Color(0xEE1A1A2E),
+      color: bg,
       alignment: Alignment.center,
-      child: const Column(
+      child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.pause_circle_outline, size: 72, color: Colors.white54),
-          SizedBox(height: 12),
+          Icon(Icons.pause_circle_outline, size: 72, color: fg),
+          const SizedBox(height: 12),
           Text(
             'Paused',
-            style: TextStyle(fontSize: 28, color: Colors.white54),
+            style: TextStyle(fontSize: 28, color: fg),
           ),
         ],
       ),
@@ -433,24 +437,25 @@ class _CompletionOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final onSurface = Theme.of(context).colorScheme.onSurface;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Icon(Icons.check_circle, color: Color(0xFF0D9488), size: 80),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'Puzzle Complete!',
             style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: onSurface,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'Time: ${_formatTime(elapsed)}',
-            style: const TextStyle(fontSize: 18, color: Colors.white70),
+            style: TextStyle(fontSize: 18, color: onSurface.withValues(alpha: 0.7)),
           ),
         ],
       ),
@@ -465,7 +470,8 @@ class _HelpContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const ts = TextStyle(color: Colors.white70, fontSize: 13, height: 1.5);
+    final bodyColor = Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7);
+    final ts = TextStyle(color: bodyColor, fontSize: 13, height: 1.5);
     const ths = TextStyle(
       color: Color(0xFF0D9488),
       fontSize: 13,
@@ -474,20 +480,20 @@ class _HelpContent extends StatelessWidget {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: const [
+      children: [
         Text('Goal', style: ths),
         Text(
           'Fill every cell with a digit 1–9 so each row, column, and '
           '3×3 box contains every digit exactly once.',
           style: ts,
         ),
-        SizedBox(height: 12),
+        const SizedBox(height: 12),
         Text('Modes', style: ths),
         Text('Num — place a digit in the selected cell', style: ts),
         Text('Corner — add small corner pencil-marks', style: ts),
         Text('Centre — add a larger centre pencil-mark', style: ts),
         Text('Color — paint a cell with a highlight colour', style: ts),
-        SizedBox(height: 12),
+        const SizedBox(height: 12),
         Text('Toolbar buttons', style: ths),
         Text('Undo / Redo — step back or forward through your moves', style: ts),
         Text('Desel — clear the current cell selection', style: ts),
@@ -495,19 +501,19 @@ class _HelpContent extends StatelessWidget {
         Text('Multi-Nums / Multi-Crnrs / Multi-Cntrs — activate multi-cell '
             'mode: drag across cells to select many at once, then enter a digit '
             'to fill them all', style: ts),
-        SizedBox(height: 12),
+        const SizedBox(height: 12),
         Text('AppBar icons', style: ths),
         Text('⏸ Pause — hide the grid and stop the timer', style: ts),
         Text('≡ Candidates — show computed candidates for empty cells', style: ts),
         Text('💡 Hints — coming soon', style: ts),
         Text('? Help — this dialog', style: ts),
         Text('👁 Conflicts — highlight cells that break Sudoku rules', style: ts),
-        SizedBox(height: 12),
+        const SizedBox(height: 12),
         Text('Keyboard shortcuts (web)', style: ths),
         Text('1–9  Enter digit   N  Number mode   V  Corner mode   C  Centre mode', style: ts),
         Text('M  Toggle multi-select   Z  Undo   Y  Redo   P  Pause', style: ts),
         Text('Delete / Backspace  Erase   Escape  Deselect all', style: ts),
-        SizedBox(height: 12),
+        const SizedBox(height: 12),
         Text('Long-press a digit button', style: ths),
         Text(
           'If writable cells are selected: fills them with that digit '

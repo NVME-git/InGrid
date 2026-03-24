@@ -269,19 +269,20 @@ class _SudokuCell extends StatelessWidget {
                 top: BorderSide(color: _topC(row), width: _topW(row)),
               ),
             ),
-            child: _buildCellContent(cellSize),
+            child: _buildCellContent(ctx, cellSize),
           );
         }),
       ),
     );
   }
 
-  Widget _buildCellContent(double cellSize) {
+  Widget _buildCellContent(BuildContext context, double cellSize) {
     // Corner-note font: ~21% of cell width (each note sits in a 1/3-width slot).
     // Centre-note font: ~25% of cell width.
     // Clamp to sane min/max so tiny cells are still readable.
     final cornerFontSize = (cellSize * 0.21).clamp(8.0, 14.0);
     final centreFontSize = (cellSize * 0.25).clamp(9.0, 16.0);
+    final onSurface = Theme.of(context).colorScheme.onSurface;
 
     if (cell.digit != null) {
       return Center(
@@ -290,7 +291,7 @@ class _SudokuCell extends StatelessWidget {
           style: TextStyle(
             fontSize: 20,
             fontWeight: cell.isGiven ? FontWeight.bold : FontWeight.normal,
-            color: cell.isGiven ? Colors.white : const Color(0xFF0D9488),
+            color: cell.isGiven ? onSurface : const Color(0xFF0D9488),
           ),
         ),
       );
@@ -316,14 +317,19 @@ class _SudokuCell extends StatelessWidget {
             _CornerNotes(
                 notes: autoCandidateNotes!,
                 fontSize: cornerFontSize,
-                textColor: Colors.white30)
+                textColor: onSurface.withValues(alpha: 0.30))
           else if (cell.cornerNotes.isNotEmpty)
-            _CornerNotes(notes: cell.cornerNotes, fontSize: cornerFontSize),
+            _CornerNotes(
+                notes: cell.cornerNotes,
+                fontSize: cornerFontSize,
+                textColor: onSurface.withValues(alpha: 0.54)),
           if (cell.centreNotes.isNotEmpty && !hasAutoNotes)
             Center(
               child: Text(
                 (cell.centreNotes.toList()..sort()).join(),
-                style: TextStyle(fontSize: centreFontSize, color: Colors.white70),
+                style: TextStyle(
+                    fontSize: centreFontSize,
+                    color: onSurface.withValues(alpha: 0.7)),
               ),
             ),
           // Flash: briefly show the rejected digit in red
@@ -392,7 +398,7 @@ class _CornerNotes extends StatelessWidget {
   final double fontSize;
   const _CornerNotes({
     required this.notes,
-    this.textColor = Colors.white54,
+    required this.textColor,
     this.fontSize = 8,
   });
 
