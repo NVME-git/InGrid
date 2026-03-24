@@ -63,8 +63,8 @@ class HelpScreen extends StatelessWidget {
               Text('Modes', style: _ths),
               SizedBox(height: 4),
               Text('Num (N) — place a digit in the selected cell', style: _ts),
-              Text('Corner (V) — add small corner pencil-marks', style: _ts),
-              Text('Centre (C) — add a larger centre pencil-mark', style: _ts),
+              Text('Corner (V) — add corner pencil-marks', style: _ts),
+              Text('Centre (C) — add a centre pencil-mark', style: _ts),
               Text('Color — paint a cell with a highlight colour', style: _ts),
               SizedBox(height: 16),
 
