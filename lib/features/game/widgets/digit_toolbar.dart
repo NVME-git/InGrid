@@ -28,17 +28,15 @@ class DigitToolbar extends ConsumerWidget {
     final multi = game.multiSelectMode;
     final isColor = mode == EntryMode.highlighter;
 
-    // ── Compute remaining count (9 − placed) for each digit 1–9 ──────────
-    final remaining = List.generate(9, (i) {
-      final digit = i + 1;
-      var placed = 0;
-      for (int r = 0; r < 9; r++) {
-        for (int c = 0; c < 9; c++) {
-          if (game.board.cells[r][c].digit == digit) placed++;
-        }
+    // ── Single pass: compute placed counts then derive remaining ─────────
+    final placedCounts = List.filled(10, 0); // index 1–9
+    for (int r = 0; r < 9; r++) {
+      for (int c = 0; c < 9; c++) {
+        final d = game.board.cells[r][c].digit;
+        if (d != null) placedCounts[d]++;
       }
-      return 9 - placed;
-    });
+    }
+    final remaining = List.generate(9, (i) => 9 - placedCounts[i + 1]);
 
     // ── Build the 4 button rows (shared between compact and expanded modes) ──
     final xAlign =
@@ -230,8 +228,8 @@ class _DigitBtn extends StatelessWidget {
           Text(
             '$remaining',
             style: TextStyle(
-              fontSize: 9,
-              color: effectivelyDisabled ? Colors.white12 : Colors.white38,
+              fontSize: 10,
+              color: effectivelyDisabled ? Colors.white24 : Colors.white54,
             ),
           ),
         ],
@@ -268,7 +266,7 @@ class _ModeBtn extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-                fontSize: 9, color: active ? Colors.white : Colors.white70),
+                fontSize: 10, color: active ? Colors.white : Colors.white70),
           ),
         ],
       ),

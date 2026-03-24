@@ -59,13 +59,25 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         buf.write(board.cells[r][c].digit ?? '0');
       }
     }
-    Clipboard.setData(ClipboardData(text: buf.toString()));
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Board copied to clipboard'),
-        duration: Duration(seconds: 2),
-      ),
-    );
+    Clipboard.setData(ClipboardData(text: buf.toString())).then((_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Board copied to clipboard'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    }).catchError((_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to copy to clipboard'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    });
   }
 
   // ── Keyboard shortcuts ────────────────────────────────────────────────────
