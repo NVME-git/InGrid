@@ -7,9 +7,8 @@ import '../game_state.dart';
 //   Row 1:  [Undo]     [1] [2] [3]  [Num]
 //   Row 2:  [Redo]     [4] [5] [6]  [Corner]
 //   Row 3:  [Deselect] [7] [8] [9]  [Centre]
-//   Row 4:  [Erase] [M·Num] [M·Cor] [M·Cen] [Color]
-//   Row 5:  [Auto Candidates  (full-width toggle)]
-//   Row 6:  (compact color-picker — only visible in Color mode)
+//   Row 4:  [Erase] [Multi-Nums] [Multi-Corners] [Multi-Centers] [Color]
+//   Row 5:  (compact color-picker — only visible in Color mode)
 //
 // Rows 1–4 use 5 Expanded children separated by 2 px gaps.
 // When [expanded] is true every row is wrapped in Expanded so the toolbar
@@ -29,15 +28,27 @@ class DigitToolbar extends ConsumerWidget {
     final multi = game.multiSelectMode;
     final isColor = mode == EntryMode.highlighter;
 
-    // ── Build the 5 button rows (shared between compact and expanded modes) ──
+    // ── Compute remaining count (9 − placed) for each digit 1–9 ──────────
+    final remaining = List.generate(9, (i) {
+      final digit = i + 1;
+      var placed = 0;
+      for (int r = 0; r < 9; r++) {
+        for (int c = 0; c < 9; c++) {
+          if (game.board.cells[r][c].digit == digit) placed++;
+        }
+      }
+      return 9 - placed;
+    });
+
+    // ── Build the 4 button rows (shared between compact and expanded modes) ──
     final xAlign =
         expanded ? CrossAxisAlignment.stretch : CrossAxisAlignment.center;
 
     final row1 = _ToolRow(crossAxisAlignment: xAlign, children: [
       _ActionBtn(icon: Icons.undo, label: 'Undo', onTap: notifier.undo),
-      _DigitBtn(digit: 1, disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
-      _DigitBtn(digit: 2, disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
-      _DigitBtn(digit: 3, disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
+      _DigitBtn(digit: 1, remaining: remaining[0], disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
+      _DigitBtn(digit: 2, remaining: remaining[1], disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
+      _DigitBtn(digit: 3, remaining: remaining[2], disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
       _ModeBtn(
         label: 'Num',
         icon: Icons.grid_4x4,
@@ -47,9 +58,9 @@ class DigitToolbar extends ConsumerWidget {
     ]);
     final row2 = _ToolRow(crossAxisAlignment: xAlign, children: [
       _ActionBtn(icon: Icons.redo, label: 'Redo', onTap: notifier.redo),
-      _DigitBtn(digit: 4, disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
-      _DigitBtn(digit: 5, disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
-      _DigitBtn(digit: 6, disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
+      _DigitBtn(digit: 4, remaining: remaining[3], disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
+      _DigitBtn(digit: 5, remaining: remaining[4], disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
+      _DigitBtn(digit: 6, remaining: remaining[5], disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
       _ModeBtn(
         label: 'Corner',
         icon: Icons.format_list_numbered,
@@ -59,9 +70,9 @@ class DigitToolbar extends ConsumerWidget {
     ]);
     final row3 = _ToolRow(crossAxisAlignment: xAlign, children: [
       _ActionBtn(icon: Icons.deselect, label: 'Desel', onTap: notifier.deselectAll),
-      _DigitBtn(digit: 7, disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
-      _DigitBtn(digit: 8, disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
-      _DigitBtn(digit: 9, disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
+      _DigitBtn(digit: 7, remaining: remaining[6], disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
+      _DigitBtn(digit: 8, remaining: remaining[7], disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
+      _DigitBtn(digit: 9, remaining: remaining[8], disabled: isColor, onEnter: notifier.enterDigit, onLongPress: notifier.longPressDigit),
       _ModeBtn(
         label: 'Centre',
         icon: Icons.notes,
@@ -71,32 +82,27 @@ class DigitToolbar extends ConsumerWidget {
     ]);
     final row4 = _ToolRow(crossAxisAlignment: xAlign, children: [
       _ActionBtn(icon: Icons.backspace_outlined, label: 'Erase', onTap: notifier.erase),
-      _ModeBtn(label: 'M·Num', icon: Icons.select_all, active: mode == EntryMode.fullNumber && multi,
-          onTap: () => notifier.setEntryModeAndMulti(EntryMode.fullNumber, true)),
-      _ModeBtn(label: 'M·Cor', icon: Icons.select_all, active: mode == EntryMode.cornerNote && multi,
-          onTap: () => notifier.setEntryModeAndMulti(EntryMode.cornerNote, true)),
-      _ModeBtn(label: 'M·Cen', icon: Icons.select_all, active: mode == EntryMode.centreNote && multi,
-          onTap: () => notifier.setEntryModeAndMulti(EntryMode.centreNote, true)),
+      _ModeBtn(
+        label: 'Multi-Nums',
+        icon: Icons.tag,
+        active: mode == EntryMode.fullNumber && multi,
+        onTap: () => notifier.setEntryModeAndMulti(EntryMode.fullNumber, true),
+      ),
+      _ModeBtn(
+        label: 'Multi-Crnrs',
+        icon: Icons.border_all,
+        active: mode == EntryMode.cornerNote && multi,
+        onTap: () => notifier.setEntryModeAndMulti(EntryMode.cornerNote, true),
+      ),
+      _ModeBtn(
+        label: 'Multi-Cntrs',
+        icon: Icons.control_camera,
+        active: mode == EntryMode.centreNote && multi,
+        onTap: () => notifier.setEntryModeAndMulti(EntryMode.centreNote, true),
+      ),
       _ModeBtn(label: 'Color', icon: Icons.color_lens_outlined, active: isColor,
           onTap: () => notifier.setEntryModeAndMulti(EntryMode.highlighter, false)),
     ]);
-
-    final autoCandidatesBtn = _Btn(
-      active: game.autoCandidates,
-      onTap: notifier.toggleAutoCandidates,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.lightbulb_outline, size: 16,
-              color: game.autoCandidates ? Colors.white : Colors.white70),
-          const SizedBox(width: 4),
-          Text('Auto Candidates',
-              style: TextStyle(
-                  fontSize: 12,
-                  color: game.autoCandidates ? Colors.white : Colors.white70)),
-        ],
-      ),
-    );
 
     final colorPicker = isColor
         ? <Widget>[
@@ -115,8 +121,7 @@ class DigitToolbar extends ConsumerWidget {
           row1, const SizedBox(height: 3),
           row2, const SizedBox(height: 3),
           row3, const SizedBox(height: 3),
-          row4, const SizedBox(height: 3),
-          autoCandidatesBtn,
+          row4,
           ...colorPicker,
         ],
       );
@@ -128,8 +133,7 @@ class DigitToolbar extends ConsumerWidget {
         Expanded(child: row1), const SizedBox(height: 3),
         Expanded(child: row2), const SizedBox(height: 3),
         Expanded(child: row3), const SizedBox(height: 3),
-        Expanded(child: row4), const SizedBox(height: 3),
-        Expanded(child: autoCandidatesBtn),
+        Expanded(child: row4),
         ...colorPicker,
       ],
     );
@@ -188,16 +192,18 @@ class _Btn extends StatelessWidget {
   }
 }
 
-/// Digit button (1-9). Grayed out and non-interactive in Color mode.
+/// Digit button (1-9). Shows remaining count subscript; greys out when fully placed.
 /// Tap: enter digit in current mode. Long-press: smart write or highlight.
 class _DigitBtn extends StatelessWidget {
   final int digit;
+  final int remaining; // how many of this digit are still unplaced (0–9)
   final bool disabled;
   final void Function(int) onEnter;
   final void Function(int) onLongPress;
 
   const _DigitBtn({
     required this.digit,
+    required this.remaining,
     required this.disabled,
     required this.onEnter,
     required this.onLongPress,
@@ -205,16 +211,30 @@ class _DigitBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final fullyPlaced = remaining == 0;
+    final effectivelyDisabled = disabled || fullyPlaced;
     return _Btn(
-      onTap: disabled ? null : () => onEnter(digit),
-      onLongPress: disabled ? null : () => onLongPress(digit),
-      child: Text(
-        '$digit',
-        style: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-          color: disabled ? Colors.white24 : Colors.white,
-        ),
+      onTap: effectivelyDisabled ? null : () => onEnter(digit),
+      onLongPress: effectivelyDisabled ? null : () => onLongPress(digit),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '$digit',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: effectivelyDisabled ? Colors.white24 : Colors.white,
+            ),
+          ),
+          Text(
+            '$remaining',
+            style: TextStyle(
+              fontSize: 9,
+              color: effectivelyDisabled ? Colors.white12 : Colors.white38,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -245,8 +265,10 @@ class _ModeBtn extends StatelessWidget {
           Icon(icon, size: 16, color: active ? Colors.white : Colors.white70),
           Text(
             label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
-                fontSize: 11, color: active ? Colors.white : Colors.white70),
+                fontSize: 9, color: active ? Colors.white : Colors.white70),
           ),
         ],
       ),

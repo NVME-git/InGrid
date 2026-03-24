@@ -41,6 +41,8 @@ class GameState {
   /// When true, every empty cell that has no user-written notes shows its
   /// computed valid candidates as dim corner notes.
   final bool autoCandidates;
+  /// When true the timer is stopped and a pause overlay hides the grid.
+  final bool isPaused;
 
   const GameState({
     required this.board,
@@ -59,6 +61,7 @@ class GameState {
     this.flashNoteMode,
     this.pinnedDigit,
     this.autoCandidates = false,
+    this.isPaused = false,
   });
 
   GameState copyWith({
@@ -82,6 +85,7 @@ class GameState {
     // Pass clearPinnedDigit: true to null-out the pinned digit highlight.
     bool clearPinnedDigit = false,
     bool? autoCandidates,
+    bool? isPaused,
   }) {
     return GameState(
       board: board ?? this.board,
@@ -100,6 +104,7 @@ class GameState {
       flashNoteMode: clearFlash ? null : (flashNoteMode ?? this.flashNoteMode),
       pinnedDigit: clearPinnedDigit ? null : (pinnedDigit ?? this.pinnedDigit),
       autoCandidates: autoCandidates ?? this.autoCandidates,
+      isPaused: isPaused ?? this.isPaused,
     );
   }
 }
@@ -489,6 +494,10 @@ class GameNotifier extends Notifier<GameState> {
 
   void toggleAutoCandidates() {
     state = state.copyWith(autoCandidates: !state.autoCandidates);
+  }
+
+  void togglePause() {
+    state = state.copyWith(isPaused: !state.isPaused);
   }
 
   void _saveUndoSnapshot() {

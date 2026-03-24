@@ -18,6 +18,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   Timer? _timer;
   /// In landscape mode, whether the toolbar is on the right side.
   bool _toolbarOnRight = true;
+  /// Whether the timer shows seconds (mm:ss) or just minutes (mm m).
+  bool _timerShowSeconds = true;
 
   @override
   void initState() {
@@ -34,7 +36,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   void _startTimer() {
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       final game = ref.read(gameProvider);
-      if (!game.isComplete) {
+      if (!game.isComplete && !game.isPaused) {
         ref.read(gameProvider.notifier).updateTimer(
           game.elapsed + const Duration(seconds: 1),
         );
@@ -43,15 +45,34 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   }
 
   String _formatTime(Duration d) {
-    final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final m = d.inMinutes;
+    if (!_timerShowSeconds) return '${m}m';
     final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return '$m:$s';
+    return '${m.toString().padLeft(2, '0')}:$s';
+  }
+
+  void _shareBoard() {
+    final board = ref.read(gameProvider).board;
+    final buf = StringBuffer();
+    for (int r = 0; r < 9; r++) {
+      for (int c = 0; c < 9; c++) {
+        buf.write(board.cells[r][c].digit ?? '0');
+      }
+    }
+    Clipboard.setData(ClipboardData(text: buf.toString()));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Board copied to clipboard'),
+        duration: Duration(seconds: 2),
+      ),
+    );
   }
 
   // ── Keyboard shortcuts ────────────────────────────────────────────────────
   // N = Number mode     V = Corner mode    C = Centre mode
   // M = Multi-toggle    Z = Undo           Y = Redo
-  // 1-9 = Enter digit   Delete/Backspace = Erase    Escape = Deselect
+  // P = Pause           1-9 = Enter digit
+  // Delete/Backspace = Erase    Escape = Deselect
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
     if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
       return KeyEventResult.ignored;
@@ -100,6 +121,10 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       notifier.toggleMultiSelect();
       return KeyEventResult.handled;
     }
+    if (key == LogicalKeyboardKey.keyP) {
+      notifier.togglePause();
+      return KeyEventResult.handled;
+    }
     if (key == LogicalKeyboardKey.delete || key == LogicalKeyboardKey.backspace) {
       notifier.erase();
       return KeyEventResult.handled;
@@ -115,6 +140,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   @override
   Widget build(BuildContext context) {
     final game = ref.watch(gameProvider);
+    final notifier = ref.read(gameProvider.notifier);
     final isLandscape =
         MediaQuery.of(context).orientation == Orientation.landscape;
 
@@ -123,12 +149,64 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF1A1A2E),
         foregroundColor: Colors.white,
-        title: Text(
-          _formatTime(game.elapsed),
-          style: const TextStyle(fontFamily: 'monospace', fontSize: 20),
+        leadingWidth: 72,
+        leading: const Center(
+          child: Text(
+            'InGrid',
+            style: TextStyle(
+              color: Color(0xFF0D9488),
+              fontSize: 17,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ),
+        title: GestureDetector(
+          onTap: () => setState(() => _timerShowSeconds = !_timerShowSeconds),
+          child: Text(
+            _formatTime(game.elapsed),
+            style: const TextStyle(fontFamily: 'monospace', fontSize: 20),
+          ),
         ),
         centerTitle: true,
         actions: [
+          // Pause / resume
+          IconButton(
+            icon: Icon(
+              game.isPaused ? Icons.play_arrow : Icons.pause,
+              color: Colors.white70,
+            ),
+            tooltip: game.isPaused ? 'Resume' : 'Pause',
+            onPressed: notifier.togglePause,
+          ),
+          // Auto-candidates toggle
+          IconButton(
+            icon: Icon(
+              Icons.lightbulb_outline,
+              color: game.autoCandidates
+                  ? const Color(0xFF0D9488)
+                  : Colors.white70,
+            ),
+            tooltip: game.autoCandidates
+                ? 'Hide auto candidates'
+                : 'Show auto candidates',
+            onPressed: notifier.toggleAutoCandidates,
+          ),
+          // Share board state
+          IconButton(
+            icon: const Icon(Icons.share_outlined, color: Colors.white70),
+            tooltip: 'Copy board to clipboard',
+            onPressed: _shareBoard,
+          ),
+          // Conflict-highlight toggle
+          IconButton(
+            icon: Icon(
+              game.showConflicts ? Icons.visibility : Icons.visibility_off,
+              color: Colors.white70,
+            ),
+            tooltip: 'Toggle conflict highlights',
+            onPressed: notifier.toggleConflicts,
+          ),
           // Landscape side-switch toggle (only shown in landscape)
           if (isLandscape)
             IconButton(
@@ -141,14 +219,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                   : 'Move controls to right',
               onPressed: () => setState(() => _toolbarOnRight = !_toolbarOnRight),
             ),
-          IconButton(
-            icon: Icon(
-              game.showConflicts ? Icons.visibility : Icons.visibility_off,
-              color: Colors.white70,
-            ),
-            tooltip: 'Toggle conflict highlights',
-            onPressed: () => ref.read(gameProvider.notifier).toggleConflicts(),
-          ),
         ],
       ),
       body: Focus(
@@ -157,9 +227,15 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         child: SafeArea(
           child: game.isComplete
               ? _CompletionOverlay(elapsed: game.elapsed)
-              : isLandscape
-                  ? _LandscapeLayout(toolbarOnRight: _toolbarOnRight)
-                  : const _PortraitLayout(),
+              : Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    isLandscape
+                        ? _LandscapeLayout(toolbarOnRight: _toolbarOnRight)
+                        : const _PortraitLayout(),
+                    if (game.isPaused) const _PauseOverlay(),
+                  ],
+                ),
         ),
       ),
     );
@@ -237,6 +313,30 @@ class _LandscapeLayout extends StatelessWidget {
       children: toolbarOnRight
           ? [gridWidget, toolbarWidget]
           : [toolbarWidget, gridWidget],
+    );
+  }
+}
+
+/// Shown on top of the game when paused.
+class _PauseOverlay extends StatelessWidget {
+  const _PauseOverlay();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: const Color(0xEE1A1A2E),
+      alignment: Alignment.center,
+      child: const Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.pause_circle_outline, size: 72, color: Colors.white54),
+          SizedBox(height: 12),
+          Text(
+            'Paused',
+            style: TextStyle(fontSize: 28, color: Colors.white54),
+          ),
+        ],
+      ),
     );
   }
 }
