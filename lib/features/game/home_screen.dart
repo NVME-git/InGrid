@@ -98,8 +98,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       },
                     ),
 
-                  // ── Generate ──────────────────────────────────────────────
-                  const _SectionLabel('Generate'),
+                  // ── New Grid ──────────────────────────────────────────────
+                  const _SectionLabel('New Grid'),
                   _ButtonRow(
                     children: Difficulty.values
                         .map((d) => _SectionBtn(
@@ -114,8 +114,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         .toList(),
                   ),
 
-                  // ── Import ────────────────────────────────────────────────
-                  const _SectionLabel('Import'),
+                  // ── Import Grid ───────────────────────────────────────────
+                  const _SectionLabel('Import Grid'),
                   _ButtonRow(children: [
                     _SectionBtn(
                       label: 'Paste',
@@ -196,9 +196,9 @@ class _SectionLabel extends StatelessWidget {
       padding: const EdgeInsets.only(top: 16, bottom: 6),
       child: Text(
         text.toUpperCase(),
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 11,
-          color: Colors.white38,
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54),
           letterSpacing: 1.5,
           fontWeight: FontWeight.w600,
         ),
@@ -248,21 +248,22 @@ class _SectionBtn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final enabled = onPressed != null;
+    final onSurface = Theme.of(context).colorScheme.onSurface;
     final fg = muted
-        ? Colors.white24
+        ? onSurface.withValues(alpha: 0.38)
         : enabled
             ? Colors.white
-            : Colors.white38;
+            : onSurface.withValues(alpha: 0.38);
     final bg = muted
         ? Colors.transparent
         : enabled
             ? const Color(0xFF0D9488).withValues(alpha: 0.85)
-            : Colors.white10;
+            : onSurface.withValues(alpha: 0.08);
     final border = muted
-        ? Colors.white12
+        ? onSurface.withValues(alpha: 0.12)
         : enabled
             ? const Color(0xFF0D9488)
-            : Colors.white12;
+            : onSurface.withValues(alpha: 0.12);
 
     return OutlinedButton(
       style: OutlinedButton.styleFrom(
@@ -323,23 +324,23 @@ class _ContinueButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: ElevatedButton.icon(
+      child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF0D9488).withValues(alpha: 0.2),
           foregroundColor: const Color(0xFF0D9488),
           side: const BorderSide(color: Color(0xFF0D9488)),
-          minimumSize: const Size(double.infinity, 52),
+          minimumSize: const Size(double.infinity, 72),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          alignment: Alignment.centerLeft,
         ),
         onPressed: onPressed,
-        icon: const Icon(Icons.play_circle_outline, size: 22),
-        label: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Column(
           mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            const Icon(Icons.play_circle_outline, size: 36),
+            const SizedBox(height: 6),
             const Text(
-              'Continue Game',
+              'Continue Grid',
               style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
             ),
             Text(
