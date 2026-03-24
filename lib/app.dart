@@ -34,7 +34,8 @@ final _router = GoRouter(
     ),
     GoRoute(
       path: '/import',
-      builder: (context, state) => const ImportScreen(),
+      builder: (context, state) =>
+          ImportScreen(initialTab: state.extra as String?),
     ),
   ],
 );

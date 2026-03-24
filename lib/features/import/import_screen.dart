@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 import '../game/game_state.dart';
 
 class ImportScreen extends ConsumerStatefulWidget {
-  const ImportScreen({super.key});
+  /// 'paste' opens the Paste tab, 'write' opens the Manual Entry tab.
+  final String? initialTab;
+  const ImportScreen({super.key, this.initialTab});
 
   @override
   ConsumerState<ImportScreen> createState() => _ImportScreenState();
@@ -20,7 +22,8 @@ class _ImportScreenState extends ConsumerState<ImportScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    final initialIndex = widget.initialTab == 'write' ? 1 : 0;
+    _tabController = TabController(length: 2, vsync: this, initialIndex: initialIndex);
   }
 
   @override

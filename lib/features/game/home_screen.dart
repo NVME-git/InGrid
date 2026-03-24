@@ -57,7 +57,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     style: TextStyle(fontSize: 18, color: Colors.white54),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 32),
 
                   // ── Continue existing game (only if saved) ────────────────
                   if (_checkingStorage)
@@ -85,49 +85,68 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       },
                     ),
 
-                  // ── New game heading ──────────────────────────────────────
-                  const _SectionLabel('New Game'),
-                  ...Difficulty.values.map((d) => _DifficultyButton(difficulty: d)),
-
-                  const SizedBox(height: 12),
+                  // ── Generate ──────────────────────────────────────────────
+                  const _SectionLabel('Generate'),
+                  _ButtonRow(
+                    children: Difficulty.values
+                        .map((d) => _SectionBtn(
+                              label: _diffLabel(d),
+                              onPressed: () {
+                                ref
+                                    .read(gameProvider.notifier)
+                                    .startNewGame(d);
+                                context.go('/game');
+                              },
+                            ))
+                        .toList(),
+                  ),
 
                   // ── Import ────────────────────────────────────────────────
-                  const _SectionLabel('Import Puzzle'),
-                  _HomeBtn(
-                    icon: Icons.edit_outlined,
-                    label: 'Enter Manually',
-                    onPressed: () => context.go('/import'),
-                  ),
-                  _HomeBtn(
-                    icon: Icons.document_scanner_outlined,
-                    label: 'Scan with Camera (coming soon)',
-                    onPressed: null, // OCR stub
-                    muted: true,
-                  ),
+                  const _SectionLabel('Import'),
+                  _ButtonRow(children: [
+                    _SectionBtn(
+                      label: 'Paste',
+                      icon: Icons.content_paste_outlined,
+                      onPressed: () => context.go('/import', extra: 'paste'),
+                    ),
+                    _SectionBtn(
+                      label: 'Write',
+                      icon: Icons.edit_outlined,
+                      onPressed: () => context.go('/import', extra: 'write'),
+                    ),
+                    _SectionBtn(
+                      label: 'Scan',
+                      icon: Icons.document_scanner_outlined,
+                      onPressed: null,
+                      muted: true,
+                    ),
+                  ]),
 
-                  const SizedBox(height: 12),
+                  // ── Learn ─────────────────────────────────────────────────
+                  const _SectionLabel('Learn'),
+                  _ButtonRow(children: [
+                    _SectionBtn(
+                        label: 'Beginner', onPressed: null, muted: true),
+                    _SectionBtn(
+                        label: 'Intermediate', onPressed: null, muted: true),
+                    _SectionBtn(
+                        label: 'Advanced', onPressed: null, muted: true),
+                  ]),
 
-                  // ── History & Stats ───────────────────────────────────────
-                  const _SectionLabel('My Progress'),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _HomeBtn(
-                          icon: Icons.history,
-                          label: 'Game History',
-                          onPressed: () => context.go('/history'),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _HomeBtn(
-                          icon: Icons.bar_chart,
-                          label: 'Statistics',
-                          onPressed: () => context.go('/stats'),
-                        ),
-                      ),
-                    ],
-                  ),
+                  // ── Progress ──────────────────────────────────────────────
+                  const _SectionLabel('Progress'),
+                  _ButtonRow(children: [
+                    _SectionBtn(
+                      label: 'History',
+                      icon: Icons.history,
+                      onPressed: () => context.go('/history'),
+                    ),
+                    _SectionBtn(
+                      label: 'Statistics',
+                      icon: Icons.bar_chart,
+                      onPressed: () => context.go('/stats'),
+                    ),
+                  ]),
                 ],
               ),
             ),
@@ -135,6 +154,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
       ),
     );
+  }
+
+  String _diffLabel(Difficulty d) {
+    switch (d) {
+      case Difficulty.easy: return 'Easy';
+      case Difficulty.medium: return 'Medium';
+      case Difficulty.hard: return 'Hard';
+      case Difficulty.extreme: return 'Extreme';
+    }
   }
 }
 
@@ -149,11 +177,11 @@ class _SectionLabel extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(top: 16, bottom: 6),
       child: Text(
-        text,
+        text.toUpperCase(),
         style: const TextStyle(
-          fontSize: 13,
+          fontSize: 11,
           color: Colors.white38,
-          letterSpacing: 1.2,
+          letterSpacing: 1.5,
           fontWeight: FontWeight.w600,
         ),
       ),
@@ -161,34 +189,92 @@ class _SectionLabel extends StatelessWidget {
   }
 }
 
-class _HomeBtn extends StatelessWidget {
-  final IconData icon;
+/// A horizontal row of equally-spaced buttons that fills the available width.
+class _ButtonRow extends StatelessWidget {
+  final List<Widget> children;
+  const _ButtonRow({required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (int i = 0; i < children.length; i++) ...[
+              if (i > 0) const SizedBox(width: 6),
+              Expanded(child: children[i]),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A single button inside a _ButtonRow.
+class _SectionBtn extends StatelessWidget {
   final String label;
+  final IconData? icon;
   final VoidCallback? onPressed;
   final bool muted;
 
-  const _HomeBtn({
-    required this.icon,
+  const _SectionBtn({
     required this.label,
+    this.icon,
     required this.onPressed,
     this.muted = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: OutlinedButton.icon(
-        style: OutlinedButton.styleFrom(
-          foregroundColor: muted ? Colors.white24 : Colors.white70,
-          side: BorderSide(color: muted ? Colors.white12 : Colors.white24),
-          minimumSize: const Size(double.infinity, 48),
-          alignment: Alignment.centerLeft,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-        onPressed: onPressed,
-        icon: Icon(icon, size: 18),
-        label: Text(label, style: const TextStyle(fontSize: 14)),
+    final enabled = onPressed != null;
+    final fg = muted
+        ? Colors.white24
+        : enabled
+            ? Colors.white
+            : Colors.white38;
+    final bg = muted
+        ? Colors.transparent
+        : enabled
+            ? const Color(0xFF0D9488).withValues(alpha: 0.85)
+            : Colors.white10;
+    final border = muted
+        ? Colors.white12
+        : enabled
+            ? const Color(0xFF0D9488)
+            : Colors.white12;
+
+    return OutlinedButton(
+      style: OutlinedButton.styleFrom(
+        backgroundColor: bg,
+        foregroundColor: fg,
+        side: BorderSide(color: border),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+      onPressed: onPressed,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 18, color: fg),
+            const SizedBox(height: 4),
+          ],
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: fg,
+            ),
+            textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+        ],
       ),
     );
   }
@@ -218,13 +304,13 @@ class _ContinueButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.only(bottom: 8),
       child: ElevatedButton.icon(
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF0D9488).withValues(alpha: 0.2),
           foregroundColor: const Color(0xFF0D9488),
           side: const BorderSide(color: Color(0xFF0D9488)),
-          minimumSize: const Size(double.infinity, 56),
+          minimumSize: const Size(double.infinity, 52),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           alignment: Alignment.centerLeft,
         ),
@@ -244,40 +330,6 @@ class _ContinueButton extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _DifficultyButton extends ConsumerWidget {
-  final Difficulty difficulty;
-  const _DifficultyButton({required this.difficulty});
-
-  String get _label {
-    switch (difficulty) {
-      case Difficulty.easy: return 'Easy';
-      case Difficulty.medium: return 'Medium';
-      case Difficulty.hard: return 'Hard';
-      case Difficulty.extreme: return 'Extreme';
-    }
-  }
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF0D9488),
-          foregroundColor: Colors.white,
-          minimumSize: const Size(double.infinity, 48),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-        onPressed: () {
-          ref.read(gameProvider.notifier).startNewGame(difficulty);
-          context.go('/game');
-        },
-        child: Text(_label, style: const TextStyle(fontSize: 15)),
       ),
     );
   }
