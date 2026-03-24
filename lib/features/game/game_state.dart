@@ -557,8 +557,14 @@ class GameNotifier extends Notifier<GameState> {
 
   void updateTimer(Duration elapsed) {
     state = state.copyWith(elapsed: elapsed);
-    // Auto-save every 15 seconds to persist elapsed time.
-    if (elapsed.inSeconds % 15 == 0) _autoSave();
+    // Periodically persist elapsed time (every 30 s, only when a game is
+    // active and the user hasn't moved recently — board mutations already
+    // trigger _autoSave() so this only catches idle "thinking" time).
+    if (state.initialBoard.isNotEmpty &&
+        !state.isComplete &&
+        elapsed.inSeconds % 30 == 0) {
+      _autoSave();
+    }
   }
 
   void toggleConflicts() {
