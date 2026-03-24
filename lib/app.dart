@@ -4,9 +4,17 @@ import 'features/game/home_screen.dart';
 import 'features/game/game_screen.dart';
 import 'features/history/history_screen.dart';
 import 'features/stats/stats_screen.dart';
+import 'features/import/import_screen.dart';
+import 'services/session_service.dart';
 
 final _router = GoRouter(
   initialLocation: '/',
+  redirect: (context, state) {
+    if (state.matchedLocation == '/game' && !SessionService.gameSessionActive) {
+      return '/';
+    }
+    return null;
+  },
   routes: [
     GoRoute(
       path: '/',
@@ -23,6 +31,10 @@ final _router = GoRouter(
     GoRoute(
       path: '/stats',
       builder: (context, state) => const StatsScreen(),
+    ),
+    GoRoute(
+      path: '/import',
+      builder: (context, state) => const ImportScreen(),
     ),
   ],
 );

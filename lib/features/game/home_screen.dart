@@ -96,10 +96,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   _HomeBtn(
                     icon: Icons.edit_outlined,
                     label: 'Enter Manually',
-                    onPressed: () {
-                      ref.read(gameProvider.notifier).startManualEntry();
-                      context.go('/game');
-                    },
+                    onPressed: () => context.go('/import'),
                   ),
                   _HomeBtn(
                     icon: Icons.document_scanner_outlined,

@@ -28,6 +28,9 @@ class GameRecord {
   /// 81-char string of the final/current board state (0 = empty).
   final String finalBoard;
 
+  /// True when this game was imported via a string or the manual grid.
+  final bool isImported;
+
   const GameRecord({
     required this.id,
     required this.difficulty,
@@ -36,6 +39,7 @@ class GameRecord {
     required this.isComplete,
     required this.initialBoard,
     required this.finalBoard,
+    this.isImported = false,
   });
 
   Map<String, dynamic> toJson() => {
@@ -46,6 +50,7 @@ class GameRecord {
         'is_complete': isComplete,
         'initial_board': initialBoard,
         'final_board': finalBoard,
+        'is_imported': isImported,
       };
 
   factory GameRecord.fromJson(Map<String, dynamic> j) => GameRecord(
@@ -59,6 +64,7 @@ class GameRecord {
         isComplete: j['is_complete'] as bool,
         initialBoard: j['initial_board'] as String,
         finalBoard: j['final_board'] as String,
+        isImported: j['is_imported'] as bool? ?? false,
       );
 
   /// Returns the board state as a human-readable 81-char string.
@@ -74,12 +80,14 @@ class SavedGame {
   final Duration elapsed;
   final String initialBoard; // 81-char givens string
   final List<Map<String, dynamic>> cells; // 81 cell objects
+  final bool isImported;
 
   const SavedGame({
     required this.difficulty,
     required this.elapsed,
     required this.initialBoard,
     required this.cells,
+    this.isImported = false,
   });
 
   Map<String, dynamic> toJson() => {
@@ -88,6 +96,7 @@ class SavedGame {
         'elapsed_ms': elapsed.inMilliseconds,
         'initial_board': initialBoard,
         'cells': cells,
+        'is_imported': isImported,
       };
 
   factory SavedGame.fromJson(Map<String, dynamic> j) => SavedGame(
@@ -98,6 +107,7 @@ class SavedGame {
         elapsed: Duration(milliseconds: j['elapsed_ms'] as int),
         initialBoard: j['initial_board'] as String,
         cells: (j['cells'] as List).cast<Map<String, dynamic>>(),
+        isImported: j['is_imported'] as bool? ?? false,
       );
 }
 
@@ -180,6 +190,7 @@ class PersistenceService {
     required Difficulty difficulty,
     required Duration elapsed,
     required String initialBoard,
+    bool isImported = false,
   }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -188,6 +199,7 @@ class PersistenceService {
         elapsed: elapsed,
         initialBoard: initialBoard,
         cells: _boardToCells(board),
+        isImported: isImported,
       );
       await prefs.setString(_currentGameKey, jsonEncode(saved.toJson()));
     } catch (_) {
@@ -295,6 +307,7 @@ class PersistenceService {
     required Duration elapsed,
     required bool isComplete,
     required String initialBoard,
+    bool isImported = false,
   }) =>
       GameRecord(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -304,9 +317,50 @@ class PersistenceService {
         isComplete: isComplete,
         initialBoard: initialBoard,
         finalBoard: _boardToDigitString(board),
+        isImported: isImported,
       );
 
   /// Converts a board to the 81-char givens string (for first-time saves).
   static String boardToGivensString(SudokuBoard board) =>
       _boardToGivensString(board);
+
+  /// Converts an 81-char digit string (0 = empty, 1-9 = given) to a SudokuBoard.
+  static SudokuBoard boardFromString(String s) {
+    final board = SudokuBoard(
+      cells: List.generate(9, (_) => List.generate(9, (_) => SudokuCell())),
+    );
+    for (int i = 0; i < 81 && i < s.length; i++) {
+      final digit = int.tryParse(s[i]) ?? 0;
+      if (digit != 0) {
+        board.cells[i ~/ 9][i % 9] = SudokuCell(isGiven: true, digit: digit);
+      }
+    }
+    return board;
+  }
+
+  /// Updates the difficulty of a history record by id.
+  static Future<void> updateRecordDifficulty(
+      String id, Difficulty newDifficulty) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final records = await loadHistory();
+      final updated = records.map((r) {
+        if (r.id != id) return r;
+        return GameRecord(
+          id: r.id,
+          difficulty: newDifficulty,
+          date: r.date,
+          elapsed: r.elapsed,
+          isComplete: r.isComplete,
+          initialBoard: r.initialBoard,
+          finalBoard: r.finalBoard,
+          isImported: r.isImported,
+        );
+      }).toList();
+      await prefs.setString(
+        _historyKey,
+        jsonEncode(updated.map((r) => r.toJson()).toList()),
+      );
+    } catch (_) {}
+  }
 }

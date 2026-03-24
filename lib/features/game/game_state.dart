@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/engine/engine.dart';
 import '../../services/persistence_service.dart';
+import '../../services/session_service.dart';
 
 enum EntryMode { fullNumber, cornerNote, centreNote, highlighter }
 
@@ -44,6 +45,8 @@ class GameState {
   final bool autoCandidates;
   /// When true the timer is stopped and a pause overlay hides the grid.
   final bool isPaused;
+  /// When true, this game was imported via a string or the manual grid.
+  final bool isImported;
   /// The 81-char givens string saved when the game was first started,
   /// used to record the original puzzle in history.
   final String initialBoard;
@@ -66,6 +69,7 @@ class GameState {
     this.pinnedDigit,
     this.autoCandidates = false,
     this.isPaused = false,
+    this.isImported = false,
     this.initialBoard = '',
   });
 
@@ -91,6 +95,7 @@ class GameState {
     bool clearPinnedDigit = false,
     bool? autoCandidates,
     bool? isPaused,
+    bool? isImported,
     String? initialBoard,
   }) {
     return GameState(
@@ -111,6 +116,7 @@ class GameState {
       pinnedDigit: clearPinnedDigit ? null : (pinnedDigit ?? this.pinnedDigit),
       autoCandidates: autoCandidates ?? this.autoCandidates,
       isPaused: isPaused ?? this.isPaused,
+      isImported: isImported ?? this.isImported,
       initialBoard: initialBoard ?? this.initialBoard,
     );
   }
@@ -143,6 +149,7 @@ class GameNotifier extends Notifier<GameState> {
       conflicts: SudokuValidator.findConflicts(board),
       initialBoard: initialBoard,
     );
+    SessionService.gameSessionActive = true;
     _autoSave();
   }
 
@@ -152,6 +159,23 @@ class GameNotifier extends Notifier<GameState> {
     _redoStack.clear();
     state = GameState(board: SudokuBoard.empty());
     PersistenceService.clearCurrentGame();
+  }
+
+  /// Starts a game from an imported 81-char digit string (0 = empty, 1-9 = given).
+  void startImportedGame(String board81) {
+    _recorder.clear();
+    _undoStack.clear();
+    _redoStack.clear();
+    final board = PersistenceService.boardFromString(board81);
+    state = GameState(
+      board: board,
+      difficulty: Difficulty.medium,
+      conflicts: SudokuValidator.findConflicts(board),
+      initialBoard: board81,
+      isImported: true,
+    );
+    SessionService.gameSessionActive = true;
+    _autoSave();
   }
 
   /// Load a previously saved in-progress game from local storage.
@@ -168,7 +192,9 @@ class GameNotifier extends Notifier<GameState> {
       elapsed: saved.elapsed,
       conflicts: SudokuValidator.findConflicts(board),
       initialBoard: saved.initialBoard,
+      isImported: saved.isImported,
     );
+    SessionService.gameSessionActive = true;
     return true;
   }
 
@@ -183,6 +209,7 @@ class GameNotifier extends Notifier<GameState> {
       difficulty: state.difficulty,
       elapsed: state.elapsed,
       initialBoard: state.initialBoard,
+      isImported: state.isImported,
     );
   }
 
@@ -193,6 +220,7 @@ class GameNotifier extends Notifier<GameState> {
       elapsed: state.elapsed,
       isComplete: state.isComplete,
       initialBoard: state.initialBoard,
+      isImported: state.isImported,
     );
     PersistenceService.saveToHistory(record);
     if (state.isComplete) {

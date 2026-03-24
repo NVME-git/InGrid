@@ -3,6 +3,7 @@ import 'dart:math' show min;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'game_state.dart';
 import 'widgets/sudoku_grid.dart';
 import 'widgets/digit_toolbar.dart';
@@ -189,13 +190,16 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(width: 8),
-            const Text(
-              'InGrid',
-              style: TextStyle(
-                color: Color(0xFF0D9488),
-                fontSize: 17,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 0.5,
+            GestureDetector(
+              onTap: () => context.go('/'),
+              child: const Text(
+                'InGrid',
+                style: TextStyle(
+                  color: Color(0xFF0D9488),
+                  fontSize: 17,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
+                ),
               ),
             ),
             SizedBox(
@@ -228,10 +232,10 @@ class _GameScreenState extends ConsumerState<GameScreen> {
             tooltip: game.isPaused ? 'Resume' : 'Pause',
             onPressed: notifier.togglePause,
           ),
-          // Auto-candidates toggle (distinct icon from hints)
+          // Auto-candidates toggle (pencil icon)
           IconButton(
             icon: Icon(
-              Icons.format_list_numbered_rtl,
+              Icons.edit_outlined,
               color: game.autoCandidates
                   ? const Color(0xFF0D9488)
                   : Colors.white70,
@@ -254,12 +258,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
               );
             },
           ),
-          // Help / how to play
-          IconButton(
-            icon: const Icon(Icons.help_outline, color: Colors.white54),
-            tooltip: 'How to play',
-            onPressed: () => _showHelpDialog(context),
-          ),
           // Conflict-highlight toggle (starts off)
           IconButton(
             icon: Icon(
@@ -281,6 +279,12 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                   : 'Move controls to right',
               onPressed: () => setState(() => _toolbarOnRight = !_toolbarOnRight),
             ),
+          // Help / how to play (last)
+          IconButton(
+            icon: const Icon(Icons.help_outline, color: Colors.white54),
+            tooltip: 'How to play',
+            onPressed: () => _showHelpDialog(context),
+          ),
         ],
       ),
       body: Focus(

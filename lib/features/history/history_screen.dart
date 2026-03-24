@@ -61,6 +61,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
     });
   }
 
+  Future<void> _changeDifficulty(GameRecord record, Difficulty newDiff) async {
+    await PersistenceService.updateRecordDifficulty(record.id, newDiff);
+    await _load();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -95,6 +100,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       elapsedLabel: _formatElapsed(rec.elapsed),
                       dateLabel: _formatDate(rec.date),
                       onShare: () => _share(rec),
+                      onChangeDifficulty: rec.isImported
+                          ? (d) => _changeDifficulty(rec, d)
+                          : null,
                     );
                   },
                 ),
@@ -108,6 +116,7 @@ class _GameRecordCard extends StatelessWidget {
   final String elapsedLabel;
   final String dateLabel;
   final VoidCallback onShare;
+  final void Function(Difficulty)? onChangeDifficulty;
 
   const _GameRecordCard({
     required this.record,
@@ -115,7 +124,40 @@ class _GameRecordCard extends StatelessWidget {
     required this.elapsedLabel,
     required this.dateLabel,
     required this.onShare,
+    this.onChangeDifficulty,
   });
+
+  void _showDifficultyDialog(BuildContext context) {
+    showDialog<Difficulty>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A2E),
+        title: const Text(
+          'Change Difficulty',
+          style: TextStyle(color: Color(0xFF0D9488), fontSize: 15),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: Difficulty.values.map((d) {
+            final label = switch (d) {
+              Difficulty.easy => 'Easy',
+              Difficulty.medium => 'Medium',
+              Difficulty.hard => 'Hard',
+              Difficulty.extreme => 'Extreme',
+            };
+            return ListTile(
+              title: Text(label, style: const TextStyle(color: Colors.white70)),
+              selected: record.difficulty == d,
+              selectedColor: const Color(0xFF0D9488),
+              onTap: () => Navigator.pop(ctx, d),
+            );
+          }).toList(),
+        ),
+      ),
+    ).then((newDiff) {
+      if (newDiff != null) onChangeDifficulty?.call(newDiff);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -156,9 +198,15 @@ class _GameRecordCard extends StatelessWidget {
                           fontSize: 15,
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
+                      if (record.isImported) ...[
+                        const Icon(Icons.upload_outlined,
+                            size: 13, color: Colors.white38),
+                        const SizedBox(width: 6),
+                      ],
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
                           color: statusColor.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(4),
@@ -178,17 +226,26 @@ class _GameRecordCard extends StatelessWidget {
                   const SizedBox(height: 2),
                   Row(
                     children: [
-                      const Icon(Icons.timer_outlined, size: 12, color: Colors.white38),
+                      const Icon(Icons.timer_outlined,
+                          size: 12, color: Colors.white38),
                       const SizedBox(width: 4),
                       Text(
                         elapsedLabel,
-                        style: const TextStyle(color: Colors.white54, fontSize: 12),
+                        style:
+                            const TextStyle(color: Colors.white54, fontSize: 12),
                       ),
                     ],
                   ),
                 ],
               ),
             ),
+            // Difficulty change (imported only)
+            if (onChangeDifficulty != null)
+              IconButton(
+                icon: const Icon(Icons.tune, size: 18, color: Colors.white38),
+                tooltip: 'Change difficulty',
+                onPressed: () => _showDifficultyDialog(context),
+              ),
             // Share button
             IconButton(
               icon: const Icon(Icons.share_outlined, color: Colors.white54),
