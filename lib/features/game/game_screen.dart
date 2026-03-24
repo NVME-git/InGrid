@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'game_state.dart';
 import 'widgets/sudoku_grid.dart';
 import 'widgets/digit_toolbar.dart';
+import '../../services/theme_notifier.dart';
 
 class GameScreen extends ConsumerStatefulWidget {
   const GameScreen({super.key});
@@ -279,11 +280,24 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                   : 'Move controls to right',
               onPressed: () => setState(() => _toolbarOnRight = !_toolbarOnRight),
             ),
-          // Help / how to play (last)
+          // Help / how to play
           IconButton(
             icon: const Icon(Icons.help_outline, color: Colors.white54),
             tooltip: 'How to play',
             onPressed: () => _showHelpDialog(context),
+          ),
+          // Theme toggle (last)
+          IconButton(
+            icon: Icon(
+              ref.watch(themeProvider) == ThemeMode.dark
+                  ? Icons.light_mode
+                  : Icons.dark_mode,
+              color: Colors.white70,
+            ),
+            tooltip: ref.watch(themeProvider) == ThemeMode.dark
+                ? 'Switch to light mode'
+                : 'Switch to dark mode',
+            onPressed: () => ref.read(themeProvider.notifier).toggle(),
           ),
         ],
       ),

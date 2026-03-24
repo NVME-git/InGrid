@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import '../../services/persistence_service.dart';
 import '../../core/engine/engine.dart';
 
@@ -73,6 +74,21 @@ class _HistoryScreenState extends State<HistoryScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF1A1A2E),
         foregroundColor: Colors.white,
+        leadingWidth: 80,
+        leading: GestureDetector(
+          onTap: () => context.go('/'),
+          child: const Center(
+            child: Text(
+              'InGrid',
+              style: TextStyle(
+                color: Color(0xFF0D9488),
+                fontSize: 17,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+        ),
         title: const Text(
           'Game History',
           style: TextStyle(color: Color(0xFF0D9488), fontWeight: FontWeight.bold),

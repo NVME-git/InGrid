@@ -108,6 +108,21 @@ class _ImportScreenState extends ConsumerState<ImportScreen>
       appBar: AppBar(
         backgroundColor: const Color(0xFF1A1A2E),
         foregroundColor: Colors.white,
+        leadingWidth: 80,
+        leading: GestureDetector(
+          onTap: () => context.go('/'),
+          child: const Center(
+            child: Text(
+              'InGrid',
+              style: TextStyle(
+                color: Color(0xFF0D9488),
+                fontSize: 17,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+        ),
         title: const Text('Import Puzzle',
             style: TextStyle(
                 color: Color(0xFF0D9488), fontWeight: FontWeight.bold)),

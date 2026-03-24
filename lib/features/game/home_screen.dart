@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'game_state.dart';
 import '../../core/engine/engine.dart';
 import '../../services/persistence_service.dart';
+import '../../services/theme_notifier.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -29,8 +30,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final themeMode = ref.watch(themeProvider);
+    final isDark = themeMode == ThemeMode.dark;
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A2E),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: Icon(isDark ? Icons.light_mode : Icons.dark_mode),
+            tooltip: isDark ? 'Switch to light mode' : 'Switch to dark mode',
+            onPressed: () => ref.read(themeProvider.notifier).toggle(),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
@@ -125,6 +138,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   // ── Learn ─────────────────────────────────────────────────
                   const _SectionLabel('Learn'),
                   _ButtonRow(children: [
+                    _SectionBtn(
+                      label: 'Basics',
+                      icon: Icons.help_outline,
+                      onPressed: () => context.go('/help'),
+                    ),
                     _SectionBtn(
                         label: 'Beginner', onPressed: null, muted: true),
                     _SectionBtn(

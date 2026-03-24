@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'features/game/home_screen.dart';
 import 'features/game/game_screen.dart';
 import 'features/history/history_screen.dart';
 import 'features/stats/stats_screen.dart';
 import 'features/import/import_screen.dart';
+import 'features/help/help_screen.dart';
 import 'services/session_service.dart';
+import 'services/theme_notifier.dart';
 
 final _router = GoRouter(
   initialLocation: '/',
@@ -37,25 +40,50 @@ final _router = GoRouter(
       builder: (context, state) =>
           ImportScreen(initialTab: state.extra as String?),
     ),
+    GoRoute(
+      path: '/help',
+      builder: (ctx, state) => const HelpScreen(),
+    ),
   ],
 );
 
-class InGridApp extends StatelessWidget {
+class InGridApp extends ConsumerWidget {
   const InGridApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeProvider);
     return MaterialApp.router(
       title: 'InGrid',
       debugShowCheckedModeBanner: false,
       routerConfig: _router,
+      themeMode: themeMode,
       theme: ThemeData(
+        brightness: Brightness.light,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF0D9488),
+          brightness: Brightness.light,
+        ),
+        scaffoldBackgroundColor: const Color(0xFFF0F4F8),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFFF0F4F8),
+          foregroundColor: Colors.black87,
+          elevation: 0,
+        ),
+        useMaterial3: true,
+      ),
+      darkTheme: ThemeData(
         brightness: Brightness.dark,
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF0D9488),
           brightness: Brightness.dark,
         ),
         scaffoldBackgroundColor: const Color(0xFF1A1A2E),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF1A1A2E),
+          foregroundColor: Colors.white,
+          elevation: 0,
+        ),
         useMaterial3: true,
       ),
     );

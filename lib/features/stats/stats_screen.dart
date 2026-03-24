@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../services/persistence_service.dart';
 import '../../core/engine/engine.dart';
 
@@ -37,6 +38,21 @@ class _StatsScreenState extends State<StatsScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF1A1A2E),
         foregroundColor: Colors.white,
+        leadingWidth: 80,
+        leading: GestureDetector(
+          onTap: () => context.go('/'),
+          child: const Center(
+            child: Text(
+              'InGrid',
+              style: TextStyle(
+                color: Color(0xFF0D9488),
+                fontSize: 17,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+        ),
         title: const Text(
           'Statistics',
           style: TextStyle(color: Color(0xFF0D9488), fontWeight: FontWeight.bold),
