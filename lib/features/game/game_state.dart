@@ -323,6 +323,7 @@ class GameNotifier extends Notifier<GameState> {
         cell.digit = digit;
         cell.cornerNotes.clear();
         cell.centreNotes.clear();
+        _removeCandidateFromPeers(newBoard, r, c, digit);
         affected.add((r, c));
       }
     }
@@ -363,6 +364,7 @@ class GameNotifier extends Notifier<GameState> {
           cell.digit = digit;
           cell.cornerNotes.clear();
           cell.centreNotes.clear();
+          _removeCandidateFromPeers(newBoard, r, c, digit);
           affected.add((r, c));
           break;
         case EntryMode.cornerNote:
@@ -473,6 +475,33 @@ class GameNotifier extends Notifier<GameState> {
     );
     _autoSave();
     if (complete) _saveToHistoryAndClearCurrent();
+  }
+
+  /// Removes [digit] from the corner and centre notes of every cell that
+  /// shares a row, column, or 3×3 box with ([row], [col]).
+  void _removeCandidateFromPeers(SudokuBoard board, int row, int col, int digit) {
+    for (int c = 0; c < 9; c++) {
+      if (c != col) {
+        board.cells[row][c].cornerNotes.remove(digit);
+        board.cells[row][c].centreNotes.remove(digit);
+      }
+    }
+    for (int r = 0; r < 9; r++) {
+      if (r != row) {
+        board.cells[r][col].cornerNotes.remove(digit);
+        board.cells[r][col].centreNotes.remove(digit);
+      }
+    }
+    final boxR = (row ~/ 3) * 3;
+    final boxC = (col ~/ 3) * 3;
+    for (int r = boxR; r < boxR + 3; r++) {
+      for (int c = boxC; c < boxC + 3; c++) {
+        if (r != row || c != col) {
+          board.cells[r][c].cornerNotes.remove(digit);
+          board.cells[r][c].centreNotes.remove(digit);
+        }
+      }
+    }
   }
 
   /// Returns the cells in the same row, column, or 3×3 box as [row],[col]

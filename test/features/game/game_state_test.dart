@@ -131,21 +131,61 @@ void main() {
       final container = ProviderContainer();
       addTearDown(container.dispose);
       container.read(gameProvider.notifier).startManualEntry();
-      // Manually add a corner note first (no conflict yet)
+      // Add a corner note 5 at (0,0)
       container.read(gameProvider.notifier).setEntryMode(EntryMode.cornerNote);
       container.read(gameProvider.notifier).selectCell(0, 0);
       container.read(gameProvider.notifier).enterDigit(5); // adds note 5
-      // Now place digit 5 at another cell in same row
+      expect(container.read(gameProvider).board.cells[0][0].cornerNotes.contains(5), isTrue);
+      // Place digit 5 at (0,5) — auto-removes note 5 from (0,0) as a peer
       container.read(gameProvider.notifier).setEntryMode(EntryMode.fullNumber);
       container.read(gameProvider.notifier).selectCell(0, 5);
       container.read(gameProvider.notifier).enterDigit(5);
-      // Switch back to corner mode and remove the note — should be allowed
-      container.read(gameProvider.notifier).setEntryMode(EntryMode.cornerNote);
-      container.read(gameProvider.notifier).selectCell(0, 0);
-      container.read(gameProvider.notifier).enterDigit(5); // removes note 5
       final game = container.read(gameProvider);
+      // Note should have been auto-removed from (0,0) because (0,5) now has digit 5
       expect(game.board.cells[0][0].cornerNotes.contains(5), isFalse);
       expect(game.flashNoteCells, isEmpty);
+    });
+
+    test('placing a digit removes its candidates from row/col/box peers', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      container.read(gameProvider.notifier).startManualEntry();
+      // Manually add note 5 to several cells that will "see" (4,4)
+      container.read(gameProvider.notifier).setEntryMode(EntryMode.cornerNote);
+      // Same row as (4,4): (4,0) and (4,8)
+      container.read(gameProvider.notifier).selectCell(4, 0);
+      container.read(gameProvider.notifier).enterDigit(5);
+      container.read(gameProvider.notifier).selectCell(4, 8);
+      container.read(gameProvider.notifier).enterDigit(5);
+      // Same column as (4,4): (0,4) and (8,4)
+      container.read(gameProvider.notifier).selectCell(0, 4);
+      container.read(gameProvider.notifier).enterDigit(5);
+      container.read(gameProvider.notifier).selectCell(8, 4);
+      container.read(gameProvider.notifier).enterDigit(5);
+      // Same 3x3 box as (4,4): (3,3) and (5,5)
+      container.read(gameProvider.notifier).selectCell(3, 3);
+      container.read(gameProvider.notifier).enterDigit(5);
+      container.read(gameProvider.notifier).selectCell(5, 5);
+      container.read(gameProvider.notifier).enterDigit(5);
+      // A cell outside all peers: (0,0) — note should NOT be removed
+      container.read(gameProvider.notifier).selectCell(0, 0);
+      container.read(gameProvider.notifier).enterDigit(5);
+
+      // Now place digit 5 at (4,4)
+      container.read(gameProvider.notifier).setEntryMode(EntryMode.fullNumber);
+      container.read(gameProvider.notifier).selectCell(4, 4);
+      container.read(gameProvider.notifier).enterDigit(5);
+
+      final game = container.read(gameProvider);
+      // Peer notes should be gone
+      expect(game.board.cells[4][0].cornerNotes.contains(5), isFalse);
+      expect(game.board.cells[4][8].cornerNotes.contains(5), isFalse);
+      expect(game.board.cells[0][4].cornerNotes.contains(5), isFalse);
+      expect(game.board.cells[8][4].cornerNotes.contains(5), isFalse);
+      expect(game.board.cells[3][3].cornerNotes.contains(5), isFalse);
+      expect(game.board.cells[5][5].cornerNotes.contains(5), isFalse);
+      // Non-peer note should still be there
+      expect(game.board.cells[0][0].cornerNotes.contains(5), isTrue);
     });
   });
 
