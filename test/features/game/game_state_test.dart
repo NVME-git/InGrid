@@ -98,6 +98,34 @@ void main() {
       expect(container.read(gameProvider).selectedCells.length, 1);
     });
 
+    test('setEntryModeAndMulti multi→single preserves single selected cell', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      container.read(gameProvider.notifier).startManualEntry();
+      // Enter multi-select with exactly one cell selected
+      container.read(gameProvider.notifier).setEntryModeAndMulti(EntryMode.fullNumber, true);
+      container.read(gameProvider.notifier).selectCell(0, 0);
+      expect(container.read(gameProvider).selectedCells.length, 1);
+      // Transition back to single-select — the one cell must stay selected
+      container.read(gameProvider.notifier).setEntryModeAndMulti(EntryMode.fullNumber, false);
+      expect(container.read(gameProvider).selectedCells, contains((0, 0)));
+      expect(container.read(gameProvider).selectedCells.length, 1);
+    });
+
+    test('setEntryModeAndMulti multi→single deselects when multiple cells selected', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      container.read(gameProvider.notifier).startManualEntry();
+      // Enter multi-select with two cells selected
+      container.read(gameProvider.notifier).setEntryModeAndMulti(EntryMode.fullNumber, true);
+      container.read(gameProvider.notifier).selectCell(0, 0);
+      container.read(gameProvider.notifier).selectCell(0, 1);
+      expect(container.read(gameProvider).selectedCells.length, 2);
+      // Transition back to single-select — all cells must be deselected
+      container.read(gameProvider.notifier).setEntryModeAndMulti(EntryMode.fullNumber, false);
+      expect(container.read(gameProvider).selectedCells, isEmpty);
+    });
+
     test('deselectAll clears selection', () {
       final container = ProviderContainer();
       addTearDown(container.dispose);
