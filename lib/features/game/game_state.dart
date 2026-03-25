@@ -275,11 +275,13 @@ class GameNotifier extends Notifier<GameState> {
   }
 
   /// Sets entry mode and multi-select state in one atomic update.
-  /// Switching from multi-select to single-select also deselects all cells.
+  /// Switching from multi-select to single-select deselects all cells only when
+  /// more than one cell is selected; a single selected cell is preserved.
   void setEntryModeAndMulti(EntryMode mode, bool multi) {
     final wasMulti = state.multiSelectMode;
-    final selectedCells =
-        (wasMulti && !multi) ? const <(int, int)>{} : state.selectedCells;
+    final selectedCells = (wasMulti && !multi && state.selectedCells.length > 1)
+        ? const <(int, int)>{}
+        : state.selectedCells;
     state = state.copyWith(
       entryMode: mode,
       multiSelectMode: multi,
