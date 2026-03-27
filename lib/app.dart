@@ -7,6 +7,9 @@ import 'features/history/history_screen.dart';
 import 'features/stats/stats_screen.dart';
 import 'features/import/import_screen.dart';
 import 'features/help/help_screen.dart';
+import 'features/help/beginner_lesson_screen.dart';
+import 'features/help/intermediate_lesson_screen.dart';
+import 'features/help/advanced_lesson_screen.dart';
 import 'services/session_service.dart';
 import 'services/theme_notifier.dart';
 
@@ -43,6 +46,18 @@ final _router = GoRouter(
     GoRoute(
       path: '/help',
       builder: (ctx, state) => const HelpScreen(),
+    ),
+    GoRoute(
+      path: '/lessons/beginner',
+      builder: (ctx, state) => const BeginnerLessonScreen(),
+    ),
+    GoRoute(
+      path: '/lessons/intermediate',
+      builder: (ctx, state) => const IntermediateLessonScreen(),
+    ),
+    GoRoute(
+      path: '/lessons/advanced',
+      builder: (ctx, state) => const AdvancedLessonScreen(),
     ),
   ],
 );
