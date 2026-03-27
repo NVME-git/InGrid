@@ -132,20 +132,21 @@ class AdvancedLessonScreen extends StatelessWidget {
               _SudokuGrid(
                 title: 'Swordfish Pattern (Digit 7)',
                 grid: [
-                  [0,3,6, 0,0,0, 9,8,2],
-                  [9,8,2, 1,3,6, 4,5,0],
-                  [4,1,5, 9,8,2, 3,6,0],
-                  
-                  [3,6,9, 2,5,8, 0,4,1],
-                  [2,5,8, 4,1,0, 6,9,3],
-                  [0,4,1, 6,9,3, 2,0,8],
-                  
-                  [6,9,3, 8,2,5, 1,0,4],
-                  [8,2,4, 3,6,1, 5,0,9],
-                  [5,0,0, 0,4,9, 8,2,6],
+                  [0, 3, 6, 0, 0, 0, 9, 8, 2],
+                  [9, 8, 2, 1, 3, 6, 4, 5, 0],
+                  [4, 1, 5, 9, 8, 2, 3, 6, 0],
+
+                  [3, 6, 9, 2, 5, 8, 0, 4, 1],
+                  [2, 5, 8, 4, 1, 0, 6, 9, 3],
+                  [0, 4, 1, 6, 9, 3, 2, 0, 8],
+
+                  [6, 9, 3, 8, 2, 5, 1, 0, 4],
+                  [8, 2, 4, 3, 6, 1, 5, 0, 9],
+                  [5, 0, 0, 0, 4, 9, 8, 2, 6],
                 ],
                 highlightCells: [0, 0, 0, 3, 2, 0, 2, 3, 6, 3, 6, 6],
-                description: 'Digit 7 forms a Swordfish in rows 1, 3, and 7, aligned in columns 1, 4, and 7 (marked yellow). '
+                description:
+                    'Digit 7 forms a Swordfish in rows 1, 3, and 7, aligned in columns 1, 4, and 7 (marked yellow). '
                     'Eliminate 7 from all other cells in these three columns.',
               ),
               SizedBox(height: 24),
@@ -177,20 +178,21 @@ class AdvancedLessonScreen extends StatelessWidget {
               _SudokuGrid(
                 title: 'XY-Wing Pattern',
                 grid: [
-                  [0,3,0, 6,0,0, 9,8,2],
-                  [9,8,2, 1,3,0, 4,5,7],
-                  [4,0,5, 9,8,2, 3,6,1],
-                  
-                  [3,6,9, 2,5,8, 7,4,0],
-                  [2,5,8, 4,0,7, 6,9,3],
-                  [7,4,1, 3,6,9, 2,0,8],
-                  
-                  [6,9,3, 8,2,5, 1,7,4],
-                  [8,2,4, 7,9,1, 5,3,6],
-                  [5,1,7, 0,4,3, 8,2,9],
+                  [0, 3, 0, 6, 0, 0, 9, 8, 2],
+                  [9, 8, 2, 1, 3, 0, 4, 5, 7],
+                  [4, 0, 5, 9, 8, 2, 3, 6, 1],
+
+                  [3, 6, 9, 2, 5, 8, 7, 4, 0],
+                  [2, 5, 8, 4, 0, 7, 6, 9, 3],
+                  [7, 4, 1, 3, 6, 9, 2, 0, 8],
+
+                  [6, 9, 3, 8, 2, 5, 1, 7, 4],
+                  [8, 2, 4, 7, 9, 1, 5, 3, 6],
+                  [5, 1, 7, 0, 4, 3, 8, 2, 9],
                 ],
                 highlightCells: [0, 4, 4, 4, 8, 3],
-                description: 'Pivot at row 1, col 5 has {1,6}. Wing 1 at row 5, col 5 has {1,5}. '
+                description:
+                    'Pivot at row 1, col 5 has {1,6}. Wing 1 at row 5, col 5 has {1,5}. '
                     'Wing 2 at row 9, col 4 has {6,5}. Cells seeing both wings cannot be 5.',
               ),
               SizedBox(height: 24),
@@ -236,20 +238,21 @@ class AdvancedLessonScreen extends StatelessWidget {
               _SudokuGrid(
                 title: 'XYZ-Wing Pattern',
                 grid: [
-                  [0,3,6, 0,7,0, 9,8,2],
-                  [9,8,2, 1,3,6, 4,5,7],
-                  [4,7,5, 9,8,2, 3,6,1],
-                  
-                  [3,6,9, 2,5,8, 7,4,0],
-                  [2,5,8, 4,0,7, 6,9,3],
-                  [7,4,1, 3,6,9, 2,0,8],
-                  
-                  [6,9,3, 8,2,5, 1,7,4],
-                  [8,2,4, 7,9,1, 5,3,6],
-                  [5,1,7, 6,4,3, 8,2,9],
+                  [0, 3, 6, 0, 7, 0, 9, 8, 2],
+                  [9, 8, 2, 1, 3, 6, 4, 5, 7],
+                  [4, 7, 5, 9, 8, 2, 3, 6, 1],
+
+                  [3, 6, 9, 2, 5, 8, 7, 4, 0],
+                  [2, 5, 8, 4, 0, 7, 6, 9, 3],
+                  [7, 4, 1, 3, 6, 9, 2, 0, 8],
+
+                  [6, 9, 3, 8, 2, 5, 1, 7, 4],
+                  [8, 2, 4, 7, 9, 1, 5, 3, 6],
+                  [5, 1, 7, 6, 4, 3, 8, 2, 9],
                 ],
                 highlightCells: [0, 0, 0, 3, 0, 5],
-                description: 'Pivot at row 1, col 1 has {1,4,5}. Wing 1 at row 1, col 4 has {4,5}. '
+                description:
+                    'Pivot at row 1, col 1 has {1,4,5}. Wing 1 at row 1, col 4 has {4,5}. '
                     'Wing 2 at row 1, col 6 has {1,5}. Eliminate 5 from cells seeing all three.',
               ),
               SizedBox(height: 24),
@@ -275,20 +278,21 @@ class AdvancedLessonScreen extends StatelessWidget {
               _SudokuGrid(
                 title: 'Y-Wing Chain Example',
                 grid: [
-                  [1,3,6, 5,7,8, 9,0,2],
-                  [9,8,2, 1,3,6, 0,5,7],
-                  [0,7,5, 9,0,2, 3,6,1],
-                  
-                  [3,6,9, 2,5,0, 7,4,8],
-                  [2,5,0, 0,9,7, 6,0,3],
-                  [7,0,0, 3,6,0, 2,1,5],
-                  
-                  [6,9,3, 8,2,5, 1,7,4],
-                  [8,2,4, 7,0,1, 5,3,6],
-                  [5,1,7, 6,4,3, 8,2,9],
+                  [1, 3, 6, 5, 7, 8, 9, 0, 2],
+                  [9, 8, 2, 1, 3, 6, 0, 5, 7],
+                  [0, 7, 5, 9, 0, 2, 3, 6, 1],
+
+                  [3, 6, 9, 2, 5, 0, 7, 4, 8],
+                  [2, 5, 0, 0, 9, 7, 6, 0, 3],
+                  [7, 0, 0, 3, 6, 0, 2, 1, 5],
+
+                  [6, 9, 3, 8, 2, 5, 1, 7, 4],
+                  [8, 2, 4, 7, 0, 1, 5, 3, 6],
+                  [5, 1, 7, 6, 4, 3, 8, 2, 9],
                 ],
                 highlightCells: [0, 7, 2, 4, 4, 2, 4, 7],
-                description: 'Y-Wing chain: row 1 col 8 → row 3 col 5 → row 5 col 3 → row 5 col 8. '
+                description:
+                    'Y-Wing chain: row 1 col 8 → row 3 col 5 → row 5 col 3 → row 5 col 8. '
                     'The chain creates eliminations through strong links.',
               ),
               SizedBox(height: 24),

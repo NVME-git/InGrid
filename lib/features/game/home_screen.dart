@@ -25,7 +25,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Future<void> _checkSavedGame() async {
     final saved = await PersistenceService.loadCurrentGame();
-    if (mounted) setState(() { _savedGame = saved; _checkingStorage = false; });
+    if (mounted)
+      setState(() {
+        _savedGame = saved;
+        _checkingStorage = false;
+      });
   }
 
   @override
@@ -67,7 +71,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ),
                   Text(
                     'Sudoku',
-                    style: TextStyle(fontSize: 18, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54)),
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.54),
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 32),
@@ -102,78 +111,84 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   const _SectionLabel('New Grid'),
                   _ButtonRow(
                     children: Difficulty.values
-                        .map((d) => _SectionBtn(
-                              label: _diffLabel(d),
-                              onPressed: () {
-                                ref
-                                    .read(gameProvider.notifier)
-                                    .startNewGame(d);
-                                context.go('/game');
-                              },
-                            ))
+                        .map(
+                          (d) => _SectionBtn(
+                            label: _diffLabel(d),
+                            onPressed: () {
+                              ref.read(gameProvider.notifier).startNewGame(d);
+                              context.go('/game');
+                            },
+                          ),
+                        )
                         .toList(),
                   ),
 
                   // ── Import Grid ───────────────────────────────────────────
                   const _SectionLabel('Import Grid'),
-                  _ButtonRow(children: [
-                    _SectionBtn(
-                      label: 'Paste',
-                      icon: Icons.content_paste_outlined,
-                      onPressed: () => context.go('/import', extra: 'paste'),
-                    ),
-                    _SectionBtn(
-                      label: 'Write',
-                      icon: Icons.edit_outlined,
-                      onPressed: () => context.go('/import', extra: 'write'),
-                    ),
-                    _SectionBtn(
-                      label: 'Scan',
-                      icon: Icons.document_scanner_outlined,
-                      onPressed: null,
-                      muted: true,
-                    ),
-                  ]),
+                  _ButtonRow(
+                    children: [
+                      _SectionBtn(
+                        label: 'Paste',
+                        icon: Icons.content_paste_outlined,
+                        onPressed: () => context.go('/import', extra: 'paste'),
+                      ),
+                      _SectionBtn(
+                        label: 'Write',
+                        icon: Icons.edit_outlined,
+                        onPressed: () => context.go('/import', extra: 'write'),
+                      ),
+                      _SectionBtn(
+                        label: 'Scan',
+                        icon: Icons.document_scanner_outlined,
+                        onPressed: null,
+                        muted: true,
+                      ),
+                    ],
+                  ),
 
                   // ── Learn ─────────────────────────────────────────────────
                   const _SectionLabel('Learn'),
-                  _ButtonRow(children: [
-                    _SectionBtn(
-                      label: 'Basics',
-                      icon: Icons.help_outline,
-                      onPressed: () => context.go('/help'),
-                    ),
-                    _SectionBtn(
-                      label: 'Beginner',
-                      icon: Icons.school_outlined,
-                      onPressed: () => context.go('/lessons/beginner'),
-                    ),
-                    _SectionBtn(
-                      label: 'Intermediate',
-                      icon: Icons.trending_up,
-                      onPressed: () => context.go('/lessons/intermediate'),
-                    ),
-                    _SectionBtn(
-                      label: 'Advanced',
-                      icon: Icons.verified,
-                      onPressed: () => context.go('/lessons/advanced'),
-                    ),
-                  ]),
+                  _ButtonRow(
+                    children: [
+                      _SectionBtn(
+                        label: 'Basics',
+                        icon: Icons.help_outline,
+                        onPressed: () => context.go('/help'),
+                      ),
+                      _SectionBtn(
+                        label: 'Beginner',
+                        icon: Icons.school_outlined,
+                        onPressed: () => context.go('/lessons/beginner'),
+                      ),
+                      _SectionBtn(
+                        label: 'Intermediate',
+                        icon: Icons.trending_up,
+                        onPressed: () => context.go('/lessons/intermediate'),
+                      ),
+                      _SectionBtn(
+                        label: 'Advanced',
+                        icon: Icons.verified,
+                        onPressed: () => context.go('/lessons/advanced'),
+                      ),
+                    ],
+                  ),
 
                   // ── Progress ──────────────────────────────────────────────
                   const _SectionLabel('Progress'),
-                  _ButtonRow(children: [
-                    _SectionBtn(
-                      label: 'History',
-                      icon: Icons.history,
-                      onPressed: () => context.go('/history'),
-                    ),
-                    _SectionBtn(
-                      label: 'Statistics',
-                      icon: Icons.bar_chart,
-                      onPressed: () => context.go('/stats'),
-                    ),
-                  ]),
+                  _ButtonRow(
+                    children: [
+                      _SectionBtn(
+                        label: 'History',
+                        icon: Icons.history,
+                        onPressed: () => context.go('/history'),
+                      ),
+                      _SectionBtn(
+                        label: 'Statistics',
+                        icon: Icons.bar_chart,
+                        onPressed: () => context.go('/stats'),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -185,10 +200,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   String _diffLabel(Difficulty d) {
     switch (d) {
-      case Difficulty.easy: return 'Easy';
-      case Difficulty.medium: return 'Medium';
-      case Difficulty.hard: return 'Hard';
-      case Difficulty.extreme: return 'Extreme';
+      case Difficulty.easy:
+        return 'Easy';
+      case Difficulty.medium:
+        return 'Medium';
+      case Difficulty.hard:
+        return 'Hard';
+      case Difficulty.extreme:
+        return 'Extreme';
     }
   }
 }
@@ -207,7 +226,9 @@ class _SectionLabel extends StatelessWidget {
         text.toUpperCase(),
         style: TextStyle(
           fontSize: 11,
-          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54),
+          color: Theme.of(
+            context,
+          ).colorScheme.onSurface.withValues(alpha: 0.54),
           letterSpacing: 1.5,
           fontWeight: FontWeight.w600,
         ),
@@ -261,18 +282,18 @@ class _SectionBtn extends StatelessWidget {
     final fg = muted
         ? onSurface.withValues(alpha: 0.38)
         : enabled
-            ? Colors.white
-            : onSurface.withValues(alpha: 0.38);
+        ? Colors.white
+        : onSurface.withValues(alpha: 0.38);
     final bg = muted
         ? Colors.transparent
         : enabled
-            ? const Color(0xFF0D9488).withValues(alpha: 0.85)
-            : onSurface.withValues(alpha: 0.08);
+        ? const Color(0xFF0D9488).withValues(alpha: 0.85)
+        : onSurface.withValues(alpha: 0.08);
     final border = muted
         ? onSurface.withValues(alpha: 0.12)
         : enabled
-            ? const Color(0xFF0D9488)
-            : onSurface.withValues(alpha: 0.12);
+        ? const Color(0xFF0D9488)
+        : onSurface.withValues(alpha: 0.12);
 
     return OutlinedButton(
       style: OutlinedButton.styleFrom(
@@ -316,10 +337,14 @@ class _ContinueButton extends StatelessWidget {
 
   String _diffLabel(Difficulty d) {
     switch (d) {
-      case Difficulty.easy: return 'Easy';
-      case Difficulty.medium: return 'Medium';
-      case Difficulty.hard: return 'Hard';
-      case Difficulty.extreme: return 'Extreme';
+      case Difficulty.easy:
+        return 'Easy';
+      case Difficulty.medium:
+        return 'Medium';
+      case Difficulty.hard:
+        return 'Hard';
+      case Difficulty.extreme:
+        return 'Extreme';
     }
   }
 

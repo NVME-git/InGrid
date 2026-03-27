@@ -187,20 +187,21 @@ class IntermediateLessonScreen extends StatelessWidget {
               _SudokuGrid(
                 title: 'Naked Triple Example (Box 1)',
                 grid: [
-                  [0,0,0, 6,7,8, 9,1,2],
-                  [6,7,8, 9,1,2, 3,4,5],
-                  [9,1,2, 3,4,5, 6,7,8],
-                  
-                  [2,3,4, 5,6,7, 8,9,1],
-                  [5,6,7, 8,9,1, 2,3,4],
-                  [8,9,1, 2,3,4, 5,6,7],
-                  
-                  [3,4,5, 7,8,9, 1,2,6],
-                  [7,8,9, 1,2,6, 4,5,3],
-                  [1,2,6, 4,5,3, 7,8,9],
+                  [0, 0, 0, 6, 7, 8, 9, 1, 2],
+                  [6, 7, 8, 9, 1, 2, 3, 4, 5],
+                  [9, 1, 2, 3, 4, 5, 6, 7, 8],
+
+                  [2, 3, 4, 5, 6, 7, 8, 9, 1],
+                  [5, 6, 7, 8, 9, 1, 2, 3, 4],
+                  [8, 9, 1, 2, 3, 4, 5, 6, 7],
+
+                  [3, 4, 5, 7, 8, 9, 1, 2, 6],
+                  [7, 8, 9, 1, 2, 6, 4, 5, 3],
+                  [1, 2, 6, 4, 5, 3, 7, 8, 9],
                 ],
                 highlightCells: [0, 0, 0, 1, 0, 2],
-                description: 'Cells at row 1, columns 1-3 (marked yellow) form a Naked Triple with candidates {2,5,8}. '
+                description:
+                    'Cells at row 1, columns 1-3 (marked yellow) form a Naked Triple with candidates {2,5,8}. '
                     'Remove 2, 5, and 8 from all other cells in box 1.',
               ),
               SizedBox(height: 24),
