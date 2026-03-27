@@ -82,6 +82,26 @@ class AdvancedLessonScreen extends StatelessWidget {
                 example: 'Example: Digit 5 appears in row 2 (cols 3,8) and row 6 (cols 3,8). '
                     'Remove all 5s from columns 3 and 8 except in rows 2 and 6.',
               ),
+              SizedBox(height: 8),
+              _SudokuGrid(
+                title: 'X-Wing Pattern (Digit 5)',
+                grid: [
+                  [4,3,2, 9,8,7, 1,6,0],
+                  [9,8,7, 0,0,0, 0,0,4],
+                  [0,6,0, 4,2,0, 8,9,7],
+                  
+                  [2,9,6, 7,4,8, 3,1,5],
+                  [8,7,4, 1,3,6, 9,2,0],
+                  [0,0,3, 0,9,0, 0,0,6],
+                  
+                  [7,4,9, 6,0,3, 2,8,1],
+                  [6,2,8, 0,7,9, 0,4,3],
+                  [3,0,0, 8,0,4, 6,7,9],
+                ],
+                highlightCells: [1, 3, 1, 8, 5, 3, 5, 8], // X-Wing corners
+                description: 'The digit 5 forms an X-Wing pattern at rows 2 & 6, columns 4 & 9 (marked in yellow). '
+                    'Eliminate 5 from all other cells in columns 4 and 9.',
+              ),
               SizedBox(height: 24),
 
               // ── Swordfish ──────────────────────────────────────────────
@@ -325,6 +345,107 @@ class _WarningCard extends StatelessWidget {
           Text(
             description,
             style: _ts.copyWith(color: Colors.white.withOpacity(0.9)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SudokuGrid extends StatelessWidget {
+  final String title;
+  final List<List<int>> grid;
+  final List<int> highlightCells;
+  final String description;
+
+  const _SudokuGrid({
+    required this.title,
+    required this.grid,
+    required this.highlightCells,
+    required this.description,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Convert highlightCells list to set of (row, col) pairs
+    final highlights = <String>{};
+    for (int i = 0; i < highlightCells.length; i += 2) {
+      if (i + 1 < highlightCells.length) {
+        highlights.add('${highlightCells[i]}_${highlightCells[i + 1]}');
+      }
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: _teal.withOpacity(0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              color: _teal,
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Center(
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.white, width: 2),
+              ),
+              child: Column(
+                children: List.generate(9, (row) {
+                  return Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: List.generate(9, (col) {
+                      final isHighlighted = highlights.contains('${row}_$col');
+                      final value = grid[row][col];
+                      
+                      return Container(
+                        width: 28,
+                        height: 28,
+                        decoration: BoxDecoration(
+                          color: isHighlighted
+                              ? Colors.yellow.withOpacity(0.3)
+                              : (row ~/ 3 + col ~/ 3) % 2 == 0
+                                  ? Colors.grey.withOpacity(0.1)
+                                  : Colors.grey.withOpacity(0.05),
+                          border: Border(
+                            right: col % 3 == 2 && col != 8
+                                ? const BorderSide(color: Colors.white, width: 2)
+                                : const BorderSide(color: Colors.white30, width: 0.5),
+                            bottom: row % 3 == 2 && row != 8
+                                ? const BorderSide(color: Colors.white, width: 2)
+                                : const BorderSide(color: Colors.white30, width: 0.5),
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            value == 0 ? '' : value.toString(),
+                            style: TextStyle(
+                              color: isHighlighted ? Colors.yellow : Colors.white,
+                              fontSize: 13,
+                              fontWeight: value == 0 ? FontWeight.normal : FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+                  );
+                }),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            description,
+            style: _ts.copyWith(fontSize: 12),
           ),
         ],
       ),
