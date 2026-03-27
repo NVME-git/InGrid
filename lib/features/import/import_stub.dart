@@ -1,8 +1,8 @@
-/// OCR/camera import — not implemented in MVP.
+/// Future import functionality — not implemented in MVP.
 class ImportService {
   const ImportService._();
   static const ImportService instance = ImportService._();
 
-  /// Import puzzle from camera/image — stub, always returns null.
-  Future<List<List<int>>?> importFromCamera() async => null;
+  /// Future import method — stub, always returns null.
+  Future<List<List<int>>?> importPuzzle() async => null;
 }
