@@ -8,10 +8,10 @@ A cross-platform Sudoku app built with Flutter. Features Ingrid — an offline c
 
 ### Prerequisites
 
-| Tool | Minimum version |
-|------|----------------|
-| Flutter SDK | 3.11.3 |
-| Dart SDK | bundled with Flutter |
+| Tool        | Minimum version      |
+| ----------- | -------------------- |
+| Flutter SDK | 3.11.3               |
+| Dart SDK    | bundled with Flutter |
 
 ### Run
 
@@ -83,18 +83,18 @@ State management uses **Riverpod** (`flutter_riverpod`). Navigation uses **GoRou
 
 ## Keyboard shortcuts
 
-| Key | Action |
-|-----|--------|
-| `1` – `9` | Enter digit in current mode |
-| `N` | Switch to Number mode |
-| `V` | Switch to Corner note mode |
-| `C` | Switch to Centre note mode |
-| `M` | Toggle multi-select |
-| `Z` | Undo |
-| `Y` | Redo |
-| `P` | Pause / resume |
-| `Delete` / `Backspace` | Erase selected cell(s) |
-| `Escape` | Deselect all cells |
+| Key                    | Action                      |
+| ---------------------- | --------------------------- |
+| `1` – `9`              | Enter digit in current mode |
+| `N`                    | Switch to Number mode       |
+| `V`                    | Switch to Corner note mode  |
+| `C`                    | Switch to Centre note mode  |
+| `M`                    | Toggle multi-select         |
+| `Z`                    | Undo                        |
+| `Y`                    | Redo                        |
+| `P`                    | Pause / resume              |
+| `Delete` / `Backspace` | Erase selected cell(s)      |
+| `Escape`               | Deselect all cells          |
 
 ---
 
