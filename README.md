@@ -1,6 +1,6 @@
 # InGrid
 
-A cross-platform Sudoku app built with Flutter. Features Ingrid — an offline coaching engine using human-style techniques — plus OCR puzzle import, real-time multiplayer with guess detection, and full solve replay with key move highlighting.
+A cross-platform Sudoku app built with Flutter. Features Ingrid — an offline coaching engine using human-style techniques — plus real-time multiplayer with guess detection, and full solve replay with key move highlighting.
 
 ---
 
@@ -8,10 +8,10 @@ A cross-platform Sudoku app built with Flutter. Features Ingrid — an offline c
 
 ### Prerequisites
 
-| Tool | Minimum version |
-|------|----------------|
-| Flutter SDK | 3.11.3 |
-| Dart SDK | bundled with Flutter |
+| Tool        | Minimum version      |
+| ----------- | -------------------- |
+| Flutter SDK | 3.11.3               |
+| Dart SDK    | bundled with Flutter |
 
 ### Run
 
@@ -51,7 +51,7 @@ lib/
 │   ├── history/              # Completed-game history screen
 │   ├── stats/                # Per-difficulty statistics screen
 │   ├── help/                 # How-to-play screen
-│   ├── import/               # OCR / manual puzzle import
+│   ├── import/               # Manual puzzle import
 │   ├── multiplayer/          # Real-time multiplayer (stub/Supabase)
 │   └── profile/              # Player profile (stub)
 └── services/
@@ -74,7 +74,6 @@ State management uses **Riverpod** (`flutter_riverpod`). Navigation uses **GoRou
 - **Conflict highlight** — Flags cells that violate Sudoku rules
 - **Pause / resume** — Hides the grid and pauses the timer
 - **Landscape layout** — Side toolbar with a toggle to move it left or right
-- **OCR import** — Import puzzles from images (web / mobile)
 - **Solve history** — Browse and export past games
 - **Statistics** — Best time, average, last-7-day trend chart per difficulty
 - **Multiplayer** — Real-time competitive play via Supabase (in progress)
@@ -84,18 +83,18 @@ State management uses **Riverpod** (`flutter_riverpod`). Navigation uses **GoRou
 
 ## Keyboard shortcuts
 
-| Key | Action |
-|-----|--------|
-| `1` – `9` | Enter digit in current mode |
-| `N` | Switch to Number mode |
-| `V` | Switch to Corner note mode |
-| `C` | Switch to Centre note mode |
-| `M` | Toggle multi-select |
-| `Z` | Undo |
-| `Y` | Redo |
-| `P` | Pause / resume |
-| `Delete` / `Backspace` | Erase selected cell(s) |
-| `Escape` | Deselect all cells |
+| Key                    | Action                      |
+| ---------------------- | --------------------------- |
+| `1` – `9`              | Enter digit in current mode |
+| `N`                    | Switch to Number mode       |
+| `V`                    | Switch to Corner note mode  |
+| `C`                    | Switch to Centre note mode  |
+| `M`                    | Toggle multi-select         |
+| `Z`                    | Undo                        |
+| `Y`                    | Redo                        |
+| `P`                    | Pause / resume              |
+| `Delete` / `Backspace` | Erase selected cell(s)      |
+| `Escape`               | Deselect all cells          |
 
 ---
 
