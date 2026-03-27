@@ -137,12 +137,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         icon: Icons.edit_outlined,
                         onPressed: () => context.go('/import', extra: 'write'),
                       ),
-                      _SectionBtn(
-                        label: 'Scan',
-                        icon: Icons.document_scanner_outlined,
-                        onPressed: null,
-                        muted: true,
-                      ),
                     ],
                   ),
 
