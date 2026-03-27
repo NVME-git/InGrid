@@ -5,7 +5,11 @@ const _teal = Color(0xFF0D9488);
 const _bg = Color(0xFF1A1A2E);
 const _ts = TextStyle(color: Colors.white70, fontSize: 13, height: 1.5);
 const _ths = TextStyle(color: _teal, fontSize: 15, fontWeight: FontWeight.bold);
-const _subhs = TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600);
+const _subhs = TextStyle(
+  color: Colors.white,
+  fontSize: 14,
+  fontWeight: FontWeight.w600,
+);
 
 class BeginnerLessonScreen extends StatelessWidget {
   const BeginnerLessonScreen({super.key});
@@ -78,27 +82,29 @@ class BeginnerLessonScreen extends StatelessWidget {
               ),
               SizedBox(height: 4),
               _TechniqueExample(
-                example: 'Example: If a cell in row 1 sees digits 1,2,3,4,5,6,7,8 in its '
+                example:
+                    'Example: If a cell in row 1 sees digits 1,2,3,4,5,6,7,8 in its '
                     'row/column/box, the only option left is 9.',
               ),
               SizedBox(height: 8),
               _SudokuGrid(
                 title: 'Naked Single Example',
                 grid: [
-                  [5,3,0, 0,7,0, 0,0,0],
-                  [6,0,0, 1,9,5, 0,0,0],
-                  [0,9,8, 0,0,0, 0,6,0],
-                  
-                  [8,0,0, 0,6,0, 0,0,3],
-                  [4,0,0, 8,0,3, 0,0,1],
-                  [7,0,0, 0,2,0, 0,0,6],
-                  
-                  [0,6,0, 0,0,0, 2,8,0],
-                  [0,0,0, 4,1,9, 0,0,5],
-                  [0,0,0, 0,8,0, 0,7,9],
+                  [5, 3, 0, 0, 7, 0, 0, 0, 0],
+                  [6, 0, 0, 1, 9, 5, 0, 0, 0],
+                  [0, 9, 8, 0, 0, 0, 0, 6, 0],
+
+                  [8, 0, 0, 0, 6, 0, 0, 0, 3],
+                  [4, 0, 0, 8, 0, 3, 0, 0, 1],
+                  [7, 0, 0, 0, 2, 0, 0, 0, 6],
+
+                  [0, 6, 0, 0, 0, 0, 2, 8, 0],
+                  [0, 0, 0, 4, 1, 9, 0, 0, 5],
+                  [0, 0, 0, 0, 8, 0, 0, 7, 9],
                 ],
                 highlightCells: [0, 2], // Row 0, Col 2 - can only be 4
-                description: 'The cell at row 1, column 3 (marked in yellow) can only be 4. '
+                description:
+                    'The cell at row 1, column 3 (marked in yellow) can only be 4. '
                     'All other digits 1-9 already appear in its row, column, or box.',
               ),
               SizedBox(height: 24),
@@ -122,27 +128,32 @@ class BeginnerLessonScreen extends StatelessWidget {
               ),
               SizedBox(height: 4),
               _TechniqueExample(
-                example: 'Example: In box 1, if the digit 5 can only fit in one cell '
+                example:
+                    'Example: In box 1, if the digit 5 can only fit in one cell '
                     '(all other cells already see a 5), place 5 there.',
               ),
               SizedBox(height: 8),
               _SudokuGrid(
                 title: 'Hidden Single Example',
                 grid: [
-                  [0,3,0, 0,7,0, 0,0,2],
-                  [6,0,0, 1,9,5, 0,0,0],
-                  [0,9,8, 0,0,0, 0,6,0],
-                  
-                  [8,0,0, 0,6,0, 0,0,3],
-                  [4,0,0, 8,5,3, 0,0,1],
-                  [7,0,0, 0,2,0, 0,0,6],
-                  
-                  [0,6,0, 0,0,0, 2,8,0],
-                  [0,0,0, 4,1,9, 0,0,5],
-                  [0,0,0, 0,8,0, 0,7,9],
+                  [0, 3, 0, 0, 7, 0, 0, 0, 2],
+                  [6, 0, 0, 1, 9, 5, 0, 0, 0],
+                  [0, 9, 8, 0, 0, 0, 0, 6, 0],
+
+                  [8, 0, 0, 0, 6, 0, 0, 0, 3],
+                  [4, 0, 0, 8, 5, 3, 0, 0, 1],
+                  [7, 0, 0, 0, 2, 0, 0, 0, 6],
+
+                  [0, 6, 0, 0, 0, 0, 2, 8, 0],
+                  [0, 0, 0, 4, 1, 9, 0, 0, 5],
+                  [0, 0, 0, 0, 8, 0, 0, 7, 9],
                 ],
-                highlightCells: [0, 0], // Row 0, Col 0 - only place for 5 in box 1
-                description: 'In the top-left box, the digit 5 can only go in row 1, column 1 (marked in yellow). '
+                highlightCells: [
+                  0,
+                  0,
+                ], // Row 0, Col 0 - only place for 5 in box 1
+                description:
+                    'In the top-left box, the digit 5 can only go in row 1, column 1 (marked in yellow). '
                     'All other cells in this box already see a 5 from elsewhere.',
               ),
               SizedBox(height: 24),
@@ -200,7 +211,8 @@ class BeginnerLessonScreen extends StatelessWidget {
               // ── Practice ───────────────────────────────────────────────
               _PracticeCard(
                 title: 'Ready to Practice?',
-                description: 'Start with Easy or Medium puzzles to master these techniques. '
+                description:
+                    'Start with Easy or Medium puzzles to master these techniques. '
                     'Once you can solve Medium puzzles consistently, move on to Intermediate strategies.',
               ),
               SizedBox(height: 16),
@@ -344,7 +356,7 @@ class _SudokuGrid extends StatelessWidget {
                     children: List.generate(9, (col) {
                       final isHighlighted = highlights.contains('${row}_$col');
                       final value = grid[row][col];
-                      
+
                       return Container(
                         width: 28,
                         height: 28,
@@ -352,24 +364,40 @@ class _SudokuGrid extends StatelessWidget {
                           color: isHighlighted
                               ? Colors.yellow.withOpacity(0.3)
                               : (row ~/ 3 + col ~/ 3) % 2 == 0
-                                  ? Colors.grey.withOpacity(0.1)
-                                  : Colors.grey.withOpacity(0.05),
+                              ? Colors.grey.withOpacity(0.1)
+                              : Colors.grey.withOpacity(0.05),
                           border: Border(
                             right: col % 3 == 2 && col != 8
-                                ? const BorderSide(color: Colors.white, width: 2)
-                                : const BorderSide(color: Colors.white30, width: 0.5),
+                                ? const BorderSide(
+                                    color: Colors.white,
+                                    width: 2,
+                                  )
+                                : const BorderSide(
+                                    color: Colors.white30,
+                                    width: 0.5,
+                                  ),
                             bottom: row % 3 == 2 && row != 8
-                                ? const BorderSide(color: Colors.white, width: 2)
-                                : const BorderSide(color: Colors.white30, width: 0.5),
+                                ? const BorderSide(
+                                    color: Colors.white,
+                                    width: 2,
+                                  )
+                                : const BorderSide(
+                                    color: Colors.white30,
+                                    width: 0.5,
+                                  ),
                           ),
                         ),
                         child: Center(
                           child: Text(
                             value == 0 ? '' : value.toString(),
                             style: TextStyle(
-                              color: isHighlighted ? Colors.yellow : Colors.white,
+                              color: isHighlighted
+                                  ? Colors.yellow
+                                  : Colors.white,
                               fontSize: 13,
-                              fontWeight: value == 0 ? FontWeight.normal : FontWeight.bold,
+                              fontWeight: value == 0
+                                  ? FontWeight.normal
+                                  : FontWeight.bold,
                             ),
                           ),
                         ),
@@ -381,10 +409,7 @@ class _SudokuGrid extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            description,
-            style: _ts.copyWith(fontSize: 12),
-          ),
+          Text(description, style: _ts.copyWith(fontSize: 12)),
         ],
       ),
     );

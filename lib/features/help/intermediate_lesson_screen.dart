@@ -5,7 +5,11 @@ const _teal = Color(0xFF0D9488);
 const _bg = Color(0xFF1A1A2E);
 const _ts = TextStyle(color: Colors.white70, fontSize: 13, height: 1.5);
 const _ths = TextStyle(color: _teal, fontSize: 15, fontWeight: FontWeight.bold);
-const _subhs = TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600);
+const _subhs = TextStyle(
+  color: Colors.white,
+  fontSize: 14,
+  fontWeight: FontWeight.w600,
+);
 
 class IntermediateLessonScreen extends StatelessWidget {
   const IntermediateLessonScreen({super.key});
@@ -78,26 +82,28 @@ class IntermediateLessonScreen extends StatelessWidget {
               ),
               SizedBox(height: 4),
               _TechniqueNote(
-                note: 'Naked Triples work the same way with three cells and three digits.',
+                note:
+                    'Naked Triples work the same way with three cells and three digits.',
               ),
               SizedBox(height: 8),
               _SudokuGrid(
                 title: 'Naked Pair Example (Row 1)',
                 grid: [
-                  [0,0,0, 0,5,0, 8,0,0],  // Cols 1 & 2 can only be {3,7}
-                  [4,5,6, 1,8,2, 9,3,7],
-                  [7,8,9, 3,4,6, 1,2,5],
-                  
-                  [2,1,4, 6,9,7, 5,8,3],
-                  [3,6,5, 8,2,1, 7,4,9],
-                  [8,9,7, 5,3,4, 2,6,1],
-                  
-                  [5,2,1, 7,6,8, 3,9,4],
-                  [6,4,8, 9,1,3, 0,5,2],
-                  [9,7,3, 2,0,5, 6,1,8],
+                  [0, 0, 0, 0, 5, 0, 8, 0, 0], // Cols 1 & 2 can only be {3,7}
+                  [4, 5, 6, 1, 8, 2, 9, 3, 7],
+                  [7, 8, 9, 3, 4, 6, 1, 2, 5],
+
+                  [2, 1, 4, 6, 9, 7, 5, 8, 3],
+                  [3, 6, 5, 8, 2, 1, 7, 4, 9],
+                  [8, 9, 7, 5, 3, 4, 2, 6, 1],
+
+                  [5, 2, 1, 7, 6, 8, 3, 9, 4],
+                  [6, 4, 8, 9, 1, 3, 0, 5, 2],
+                  [9, 7, 3, 2, 0, 5, 6, 1, 8],
                 ],
                 highlightCells: [0, 0, 0, 1], // Cells at (0,0) and (0,1)
-                description: 'Cells in row 1, columns 1-2 can only contain {3,7}. '
+                description:
+                    'Cells in row 1, columns 1-2 can only contain {3,7}. '
                     'Remove 3 and 7 from all other cells in row 1.',
               ),
               SizedBox(height: 24),
@@ -138,7 +144,8 @@ class IntermediateLessonScreen extends StatelessWidget {
               ),
               SizedBox(height: 4),
               _TechniqueNote(
-                note: 'Also called "Locked Candidates" — because the candidates are locked to one line.',
+                note:
+                    'Also called "Locked Candidates" — because the candidates are locked to one line.',
               ),
               SizedBox(height: 24),
 
@@ -176,6 +183,26 @@ class IntermediateLessonScreen extends StatelessWidget {
                 '• Together they cover {2,5,8} — remove these from other cells in the unit',
                 style: _ts,
               ),
+              SizedBox(height: 8),
+              _SudokuGrid(
+                title: 'Naked Triple Example (Box 1)',
+                grid: [
+                  [0,0,0, 6,7,8, 9,1,2],
+                  [6,7,8, 9,1,2, 3,4,5],
+                  [9,1,2, 3,4,5, 6,7,8],
+                  
+                  [2,3,4, 5,6,7, 8,9,1],
+                  [5,6,7, 8,9,1, 2,3,4],
+                  [8,9,1, 2,3,4, 5,6,7],
+                  
+                  [3,4,5, 7,8,9, 1,2,6],
+                  [7,8,9, 1,2,6, 4,5,3],
+                  [1,2,6, 4,5,3, 7,8,9],
+                ],
+                highlightCells: [0, 0, 0, 1, 0, 2],
+                description: 'Cells at row 1, columns 1-3 (marked yellow) form a Naked Triple with candidates {2,5,8}. '
+                    'Remove 2, 5, and 8 from all other cells in box 1.',
+              ),
               SizedBox(height: 24),
 
               // ── Tips ───────────────────────────────────────────────────
@@ -194,7 +221,8 @@ class IntermediateLessonScreen extends StatelessWidget {
               // ── Practice ───────────────────────────────────────────────
               _PracticeCard(
                 title: 'Practice Makes Perfect',
-                description: 'These techniques require pattern recognition. Try Hard puzzles '
+                description:
+                    'These techniques require pattern recognition. Try Hard puzzles '
                     'and look specifically for these patterns. Once comfortable, explore Advanced techniques.',
               ),
               SizedBox(height: 16),
@@ -223,7 +251,11 @@ class _TechniqueNote extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.info_outline, color: Colors.white.withOpacity(0.6), size: 18),
+          Icon(
+            Icons.info_outline,
+            color: Colors.white.withOpacity(0.6),
+            size: 18,
+          ),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -342,7 +374,7 @@ class _SudokuGrid extends StatelessWidget {
                     children: List.generate(9, (col) {
                       final isHighlighted = highlights.contains('${row}_$col');
                       final value = grid[row][col];
-                      
+
                       return Container(
                         width: 28,
                         height: 28,
@@ -350,24 +382,40 @@ class _SudokuGrid extends StatelessWidget {
                           color: isHighlighted
                               ? Colors.yellow.withOpacity(0.3)
                               : (row ~/ 3 + col ~/ 3) % 2 == 0
-                                  ? Colors.grey.withOpacity(0.1)
-                                  : Colors.grey.withOpacity(0.05),
+                              ? Colors.grey.withOpacity(0.1)
+                              : Colors.grey.withOpacity(0.05),
                           border: Border(
                             right: col % 3 == 2 && col != 8
-                                ? const BorderSide(color: Colors.white, width: 2)
-                                : const BorderSide(color: Colors.white30, width: 0.5),
+                                ? const BorderSide(
+                                    color: Colors.white,
+                                    width: 2,
+                                  )
+                                : const BorderSide(
+                                    color: Colors.white30,
+                                    width: 0.5,
+                                  ),
                             bottom: row % 3 == 2 && row != 8
-                                ? const BorderSide(color: Colors.white, width: 2)
-                                : const BorderSide(color: Colors.white30, width: 0.5),
+                                ? const BorderSide(
+                                    color: Colors.white,
+                                    width: 2,
+                                  )
+                                : const BorderSide(
+                                    color: Colors.white30,
+                                    width: 0.5,
+                                  ),
                           ),
                         ),
                         child: Center(
                           child: Text(
                             value == 0 ? '' : value.toString(),
                             style: TextStyle(
-                              color: isHighlighted ? Colors.yellow : Colors.white,
+                              color: isHighlighted
+                                  ? Colors.yellow
+                                  : Colors.white,
                               fontSize: 13,
-                              fontWeight: value == 0 ? FontWeight.normal : FontWeight.bold,
+                              fontWeight: value == 0
+                                  ? FontWeight.normal
+                                  : FontWeight.bold,
                             ),
                           ),
                         ),
@@ -379,10 +427,7 @@ class _SudokuGrid extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            description,
-            style: _ts.copyWith(fontSize: 12),
-          ),
+          Text(description, style: _ts.copyWith(fontSize: 12)),
         ],
       ),
     );
