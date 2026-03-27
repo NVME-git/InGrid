@@ -144,11 +144,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       onPressed: () => context.go('/help'),
                     ),
                     _SectionBtn(
-                        label: 'Beginner', onPressed: null, muted: true),
+                      label: 'Beginner',
+                      icon: Icons.school_outlined,
+                      onPressed: () => context.go('/lessons/beginner'),
+                    ),
                     _SectionBtn(
-                        label: 'Intermediate', onPressed: null, muted: true),
+                      label: 'Intermediate',
+                      icon: Icons.trending_up,
+                      onPressed: () => context.go('/lessons/intermediate'),
+                    ),
                     _SectionBtn(
-                        label: 'Advanced', onPressed: null, muted: true),
+                      label: 'Advanced',
+                      icon: Icons.verified,
+                      onPressed: () => context.go('/lessons/advanced'),
+                    ),
                   ]),
 
                   // ── Progress ──────────────────────────────────────────────
@@ -353,4 +362,3 @@ class _ContinueButton extends StatelessWidget {
     );
   }
 }
-
