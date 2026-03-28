@@ -86,27 +86,6 @@ class BeginnerLessonScreen extends StatelessWidget {
                     'Example: If a cell in row 1 sees digits 1,2,3,4,5,6,7,8 in its '
                     'row/column/box, the only option left is 9.',
               ),
-              SizedBox(height: 8),
-              _SudokuGrid(
-                title: 'Naked Single Example',
-                grid: [
-                  [5, 3, 0, 0, 7, 0, 0, 0, 0],
-                  [6, 0, 0, 1, 9, 5, 0, 0, 0],
-                  [0, 9, 8, 0, 0, 0, 0, 6, 0],
-
-                  [8, 0, 0, 0, 6, 0, 0, 0, 3],
-                  [4, 0, 0, 8, 0, 3, 0, 0, 1],
-                  [7, 0, 0, 0, 2, 0, 0, 0, 6],
-
-                  [0, 6, 0, 0, 0, 0, 2, 8, 0],
-                  [0, 0, 0, 4, 1, 9, 0, 0, 5],
-                  [0, 0, 0, 0, 8, 0, 0, 7, 9],
-                ],
-                highlightCells: [0, 2], // Row 0, Col 2 - can only be 4
-                description:
-                    'The cell at row 1, column 3 (marked in yellow) can only be 4. '
-                    'All other digits 1-9 already appear in its row, column, or box.',
-              ),
               SizedBox(height: 24),
 
               // ── Hidden Singles ─────────────────────────────────────────
@@ -131,30 +110,6 @@ class BeginnerLessonScreen extends StatelessWidget {
                 example:
                     'Example: In box 1, if the digit 5 can only fit in one cell '
                     '(all other cells already see a 5), place 5 there.',
-              ),
-              SizedBox(height: 8),
-              _SudokuGrid(
-                title: 'Hidden Single Example',
-                grid: [
-                  [0, 3, 0, 0, 7, 0, 0, 0, 2],
-                  [6, 0, 0, 1, 9, 5, 0, 0, 0],
-                  [0, 9, 8, 0, 0, 0, 0, 6, 0],
-
-                  [8, 0, 0, 0, 6, 0, 0, 0, 3],
-                  [4, 0, 0, 8, 5, 3, 0, 0, 1],
-                  [7, 0, 0, 0, 2, 0, 0, 0, 6],
-
-                  [0, 6, 0, 0, 0, 0, 2, 8, 0],
-                  [0, 0, 0, 4, 1, 9, 0, 0, 5],
-                  [0, 0, 0, 0, 8, 0, 0, 7, 9],
-                ],
-                highlightCells: [
-                  0,
-                  0,
-                ], // Row 0, Col 0 - only place for 5 in box 1
-                description:
-                    'In the top-left box, the digit 5 can only go in row 1, column 1 (marked in yellow). '
-                    'All other cells in this box already see a 5 from elsewhere.',
               ),
               SizedBox(height: 24),
 
@@ -296,120 +251,6 @@ class _PracticeCard extends StatelessWidget {
             description,
             style: _ts.copyWith(color: Colors.white.withOpacity(0.9)),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SudokuGrid extends StatelessWidget {
-  final String title;
-  final List<List<int>> grid;
-  final List<int> highlightCells;
-  final String description;
-
-  const _SudokuGrid({
-    required this.title,
-    required this.grid,
-    required this.highlightCells,
-    required this.description,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    // Convert highlightCells list to set of (row, col) pairs
-    final highlights = <String>{};
-    for (int i = 0; i < highlightCells.length; i += 2) {
-      if (i + 1 < highlightCells.length) {
-        highlights.add('${highlightCells[i]}_${highlightCells[i + 1]}');
-      }
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: _teal.withOpacity(0.2)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              color: _teal,
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Center(
-            child: Container(
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.white, width: 2),
-              ),
-              child: Column(
-                children: List.generate(9, (row) {
-                  return Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: List.generate(9, (col) {
-                      final isHighlighted = highlights.contains('${row}_$col');
-                      final value = grid[row][col];
-
-                      return Container(
-                        width: 28,
-                        height: 28,
-                        decoration: BoxDecoration(
-                          color: isHighlighted
-                              ? Colors.yellow.withOpacity(0.3)
-                              : (row ~/ 3 + col ~/ 3) % 2 == 0
-                              ? Colors.grey.withOpacity(0.1)
-                              : Colors.grey.withOpacity(0.05),
-                          border: Border(
-                            right: col % 3 == 2 && col != 8
-                                ? const BorderSide(
-                                    color: Colors.white,
-                                    width: 2,
-                                  )
-                                : const BorderSide(
-                                    color: Colors.white30,
-                                    width: 0.5,
-                                  ),
-                            bottom: row % 3 == 2 && row != 8
-                                ? const BorderSide(
-                                    color: Colors.white,
-                                    width: 2,
-                                  )
-                                : const BorderSide(
-                                    color: Colors.white30,
-                                    width: 0.5,
-                                  ),
-                          ),
-                        ),
-                        child: Center(
-                          child: Text(
-                            value == 0 ? '' : value.toString(),
-                            style: TextStyle(
-                              color: isHighlighted
-                                  ? Colors.yellow
-                                  : Colors.white,
-                              fontSize: 13,
-                              fontWeight: value == 0
-                                  ? FontWeight.normal
-                                  : FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      );
-                    }),
-                  );
-                }),
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(description, style: _ts.copyWith(fontSize: 12)),
         ],
       ),
     );
