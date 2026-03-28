@@ -85,30 +85,9 @@ class IntermediateLessonScreen extends StatelessWidget {
                 note:
                     'Naked Triples work the same way with three cells and three digits.',
               ),
-              SizedBox(height: 8),
-              _SudokuGrid(
-                title: 'Naked Pair Example (Row 1)',
-                grid: [
-                  [0, 0, 0, 0, 5, 0, 8, 0, 0], // Cols 1 & 2 can only be {3,7}
-                  [4, 5, 6, 1, 8, 2, 9, 3, 7],
-                  [7, 8, 9, 3, 4, 6, 1, 2, 5],
-
-                  [2, 1, 4, 6, 9, 7, 5, 8, 3],
-                  [3, 6, 5, 8, 2, 1, 7, 4, 9],
-                  [8, 9, 7, 5, 3, 4, 2, 6, 1],
-
-                  [5, 2, 1, 7, 6, 8, 3, 9, 4],
-                  [6, 4, 8, 9, 1, 3, 0, 5, 2],
-                  [9, 7, 3, 2, 0, 5, 6, 1, 8],
-                ],
-                highlightCells: [0, 0, 0, 1], // Cells at (0,0) and (0,1)
-                description:
-                    'Cells in row 1, columns 1-2 can only contain {3,7}. '
-                    'Remove 3 and 7 from all other cells in row 1.',
-              ),
               SizedBox(height: 24),
 
-              // ── Hidden Pairs ───────────────────────────────────────────
+              // ──  Hidden Pairs ───────────────────────────────────────────
               Text('2. Hidden Pairs', style: _ths),
               SizedBox(height: 4),
               Text(
@@ -182,27 +161,6 @@ class IntermediateLessonScreen extends StatelessWidget {
                 '• Cell C: {2,8}\n'
                 '• Together they cover {2,5,8} — remove these from other cells in the unit',
                 style: _ts,
-              ),
-              SizedBox(height: 8),
-              _SudokuGrid(
-                title: 'Naked Triple Example (Box 1)',
-                grid: [
-                  [0, 0, 0, 6, 7, 8, 9, 1, 2],
-                  [6, 7, 8, 9, 1, 2, 3, 4, 5],
-                  [9, 1, 2, 3, 4, 5, 6, 7, 8],
-
-                  [2, 3, 4, 5, 6, 7, 8, 9, 1],
-                  [5, 6, 7, 8, 9, 1, 2, 3, 4],
-                  [8, 9, 1, 2, 3, 4, 5, 6, 7],
-
-                  [3, 4, 5, 7, 8, 9, 1, 2, 6],
-                  [7, 8, 9, 1, 2, 6, 4, 5, 3],
-                  [1, 2, 6, 4, 5, 3, 7, 8, 9],
-                ],
-                highlightCells: [0, 0, 0, 1, 0, 2],
-                description:
-                    'Cells at row 1, columns 1-3 (marked yellow) form a Naked Triple with candidates {2,5,8}. '
-                    'Remove 2, 5, and 8 from all other cells in box 1.',
               ),
               SizedBox(height: 24),
 
@@ -315,120 +273,6 @@ class _PracticeCard extends StatelessWidget {
             description,
             style: _ts.copyWith(color: Colors.white.withOpacity(0.9)),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SudokuGrid extends StatelessWidget {
-  final String title;
-  final List<List<int>> grid;
-  final List<int> highlightCells;
-  final String description;
-
-  const _SudokuGrid({
-    required this.title,
-    required this.grid,
-    required this.highlightCells,
-    required this.description,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    // Convert highlightCells list to set of (row, col) pairs
-    final highlights = <String>{};
-    for (int i = 0; i < highlightCells.length; i += 2) {
-      if (i + 1 < highlightCells.length) {
-        highlights.add('${highlightCells[i]}_${highlightCells[i + 1]}');
-      }
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: _teal.withOpacity(0.2)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              color: _teal,
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Center(
-            child: Container(
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.white, width: 2),
-              ),
-              child: Column(
-                children: List.generate(9, (row) {
-                  return Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: List.generate(9, (col) {
-                      final isHighlighted = highlights.contains('${row}_$col');
-                      final value = grid[row][col];
-
-                      return Container(
-                        width: 28,
-                        height: 28,
-                        decoration: BoxDecoration(
-                          color: isHighlighted
-                              ? Colors.yellow.withOpacity(0.3)
-                              : (row ~/ 3 + col ~/ 3) % 2 == 0
-                              ? Colors.grey.withOpacity(0.1)
-                              : Colors.grey.withOpacity(0.05),
-                          border: Border(
-                            right: col % 3 == 2 && col != 8
-                                ? const BorderSide(
-                                    color: Colors.white,
-                                    width: 2,
-                                  )
-                                : const BorderSide(
-                                    color: Colors.white30,
-                                    width: 0.5,
-                                  ),
-                            bottom: row % 3 == 2 && row != 8
-                                ? const BorderSide(
-                                    color: Colors.white,
-                                    width: 2,
-                                  )
-                                : const BorderSide(
-                                    color: Colors.white30,
-                                    width: 0.5,
-                                  ),
-                          ),
-                        ),
-                        child: Center(
-                          child: Text(
-                            value == 0 ? '' : value.toString(),
-                            style: TextStyle(
-                              color: isHighlighted
-                                  ? Colors.yellow
-                                  : Colors.white,
-                              fontSize: 13,
-                              fontWeight: value == 0
-                                  ? FontWeight.normal
-                                  : FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      );
-                    }),
-                  );
-                }),
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(description, style: _ts.copyWith(fontSize: 12)),
         ],
       ),
     );
