@@ -217,6 +217,57 @@ void main() {
     });
   });
 
+  group('hints board string', () {
+    /// Simulates the board-to-string logic used by _openHints() in GameScreen.
+    String boardToHintsString(SudokuBoard board) {
+      final buf = StringBuffer();
+      for (int r = 0; r < 9; r++) {
+        for (int c = 0; c < 9; c++) {
+          buf.write(board.cells[r][c].digit ?? '0');
+        }
+      }
+      return buf.toString();
+    }
+
+    test('empty board produces 81 zeros', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final board = container.read(gameProvider).board;
+      final s = boardToHintsString(board);
+      expect(s.length, 81);
+      expect(s, equals('0' * 81));
+      expect(RegExp(r'^[0-9]{81}$').hasMatch(s), isTrue);
+    });
+
+    test('board with some digits produces 81 integers 0-9', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      container.read(gameProvider.notifier).startManualEntry();
+      container.read(gameProvider.notifier).selectCell(0, 0);
+      container.read(gameProvider.notifier).enterDigit(3);
+      container.read(gameProvider.notifier).selectCell(4, 4);
+      container.read(gameProvider.notifier).enterDigit(7);
+
+      final board = container.read(gameProvider).board;
+      final s = boardToHintsString(board);
+      expect(s.length, 81);
+      expect(s[0], '3');
+      expect(s[4 * 9 + 4], '7');
+      expect(RegExp(r'^[0-9]{81}$').hasMatch(s), isTrue);
+    });
+
+    test('started game board produces 81 integers 0-9', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      container.read(gameProvider.notifier).startNewGame(Difficulty.easy);
+
+      final board = container.read(gameProvider).board;
+      final s = boardToHintsString(board);
+      expect(s.length, 81);
+      expect(RegExp(r'^[0-9]{81}$').hasMatch(s), isTrue);
+    });
+  });
+
   group('GameScreen widgets', () {
     testWidgets('renders SudokuGrid', (tester) async {
       await tester.pumpWidget(_buildTestApp([]));
