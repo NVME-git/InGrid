@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'game_state.dart';
 import 'widgets/sudoku_grid.dart';
 import 'widgets/digit_toolbar.dart';
@@ -104,6 +105,42 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         );
       }
     });
+  }
+
+  /// Copies the current board state (81 digits, 0 = empty) to the clipboard,
+  /// then opens sudokusolver.app in a new tab so the user can paste it and
+  /// get solving hints automatically.
+  Future<void> _openHints() async {
+    final board = ref.read(gameProvider).board;
+    final buf = StringBuffer();
+    for (int r = 0; r < 9; r++) {
+      for (int c = 0; c < 9; c++) {
+        buf.write(board.cells[r][c].digit ?? '0');
+      }
+    }
+    final boardString = buf.toString();
+
+    // Validate: exactly 81 digits in range 0-9.
+    assert(
+      RegExp(r'^[0-9]{81}$').hasMatch(boardString),
+      'Board string must be 81 digits 0-9',
+    );
+
+    await Clipboard.setData(ClipboardData(text: boardString));
+    if (!mounted) return;
+
+    final uri = Uri.parse('https://sudokusolver.app/');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Board copied — paste it in the solver tab'),
+        duration: Duration(seconds: 3),
+      ),
+    );
   }
 
   // ── Keyboard shortcuts ────────────────────────────────────────────────────
@@ -246,19 +283,12 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                 : 'Show auto candidates',
             onPressed: notifier.toggleAutoCandidates,
           ),
-          // Hints (non-functional placeholder for future feature)
+          // Hints — copy board to clipboard and open sudokusolver.app
           IconButton(
             icon: Icon(Icons.tips_and_updates_outlined,
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.38)),
-            tooltip: 'Hints (coming soon)',
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Hints coming soon!'),
-                  duration: Duration(seconds: 2),
-                ),
-              );
-            },
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)),
+            tooltip: 'Get hints (opens sudokusolver.app)',
+            onPressed: _openHints,
           ),
           // Conflict-highlight toggle (starts off)
           IconButton(
@@ -505,7 +535,7 @@ class _HelpContent extends StatelessWidget {
         Text('AppBar icons', style: ths),
         Text('⏸ Pause — hide the grid and stop the timer', style: ts),
         Text('≡ Candidates — show computed candidates for empty cells', style: ts),
-        Text('💡 Hints — coming soon', style: ts),
+        Text('💡 Hints — copies board to clipboard and opens sudokusolver.app', style: ts),
         Text('? Help — this dialog', style: ts),
         Text('👁 Conflicts — highlight cells that break Sudoku rules', style: ts),
         const SizedBox(height: 12),

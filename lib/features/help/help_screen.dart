@@ -87,7 +87,7 @@ class HelpScreen extends StatelessWidget {
               SizedBox(height: 4),
               Text('⏸ Pause — hide the grid and stop the timer', style: _ts),
               Text('≡ Candidates — show computed candidates for empty cells', style: _ts),
-              Text('💡 Hints — coming soon', style: _ts),
+              Text('💡 Hints — copies board to clipboard and opens sudokusolver.app', style: _ts),
               Text('👁 Conflicts — highlight cells that break Sudoku rules', style: _ts),
               Text('? Help — this screen', style: _ts),
               SizedBox(height: 16),
