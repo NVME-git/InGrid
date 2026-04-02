@@ -109,7 +109,13 @@ class _SudokuGridState extends ConsumerState<SudokuGrid> {
             key: _gridKey,
             onPanStart: (details) {
               _isDragging = true;
-              // Select the initial cell additively so drag always accumulates.
+              final notifier = ref.read(gameProvider.notifier);
+              // In highlight mode save an undo snapshot at drag-start so the
+              // entire drag can be undone in one step.
+              if (game.entryMode == EntryMode.highlighter) {
+                notifier.beginHighlightDrag();
+              }
+              // Select/paint the initial cell.
               final rb = _gridKey.currentContext?.findRenderObject() as RenderBox?;
               if (rb != null) {
                 final size = rb.size;
@@ -117,7 +123,7 @@ class _SudokuGridState extends ConsumerState<SudokuGrid> {
                     ((details.localPosition.dy / size.height) * 9).clamp(0.0, 8.99).toInt();
                 final col =
                     ((details.localPosition.dx / size.width) * 9).clamp(0.0, 8.99).toInt();
-                ref.read(gameProvider.notifier).addCellToSelection(row, col);
+                notifier.addCellToSelection(row, col);
               }
             },
             onPanEnd: (_) => _isDragging = false,
