@@ -234,6 +234,13 @@ class GameNotifier extends Notifier<GameState> {
   }
 
   void selectCell(int row, int col, {bool toggle = false, bool addToSelection = false}) {
+    // In highlighter mode: tapping a cell immediately paints it with the
+    // current colour (or the X-stamp when highlightColorIndex == -1).
+    if (state.entryMode == EntryMode.highlighter) {
+      _paintHighlight(row, col, saveUndo: true);
+      return;
+    }
+
     // In multi-select mode (for digit/note modes) a tap adds/removes the cell
     final effectiveAdd = addToSelection ||
         (state.multiSelectMode && state.entryMode != EntryMode.highlighter);
@@ -258,8 +265,56 @@ class GameNotifier extends Notifier<GameState> {
   /// Always adds [row],[col] to the current selection (never removes).
   /// Used during drag-select so cells only accumulate, never toggle off.
   void addCellToSelection(int row, int col) {
+    // In highlighter mode: paint the cell immediately as the user drags.
+    // No undo snapshot here — the snapshot was saved when the drag began
+    // (via beginHighlightDrag called from the grid's onPanStart handler).
+    if (state.entryMode == EntryMode.highlighter) {
+      _paintHighlight(row, col, saveUndo: false);
+      return;
+    }
     final newSelection = Set<(int, int)>.from(state.selectedCells)..add((row, col));
     state = state.copyWith(selectedCells: newSelection, clearPinnedDigit: true);
+  }
+
+  /// Called at the start of a paint-drag gesture in highlight mode so that
+  /// the entire drag can be undone in a single undo step.
+  void beginHighlightDrag() {
+    _saveUndoSnapshot();
+    _redoStack.clear();
+  }
+
+  /// Applies the current [highlightColorIndex] to the cell at ([row], [col]).
+  ///
+  /// Tapping a cell that already carries the same colour clears it (toggle
+  /// off), making it easy to remove a highlight without switching modes.
+  ///
+  /// When [saveUndo] is true an undo snapshot is pushed before the change
+  /// (used for individual taps). During a drag [beginHighlightDrag] already
+  /// saved the snapshot, so subsequent cells pass [saveUndo] = false.
+  void _paintHighlight(int row, int col, {required bool saveUndo}) {
+    final newBoard = state.board.copy();
+    final cell = newBoard.cells[row][col];
+    final colorIdx = state.highlightColorIndex;
+    // Toggle: tapping the same colour a second time removes it.
+    cell.highlightColor = (cell.highlightColor == colorIdx) ? null : colorIdx;
+    if (saveUndo) {
+      _saveUndoSnapshot();
+      _redoStack.clear();
+    }
+    _recorder.record(MoveRecord(
+      type: MoveType.highlight,
+      timestamp: DateTime.now(),
+      cells: [(row, col)],
+      value: colorIdx,
+    ));
+    // Clear selection so the painted colour is immediately visible
+    // (the selection teal overlay would otherwise obscure the highlight).
+    state = state.copyWith(
+      board: newBoard,
+      selectedCells: const {},
+      clearPinnedDigit: true,
+    );
+    _autoSave();
   }
 
   void toggleMultiSelect() {
