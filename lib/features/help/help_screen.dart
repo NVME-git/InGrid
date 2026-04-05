@@ -104,8 +104,9 @@ class HelpScreen extends StatelessWidget {
               Text('Long-press a digit button', style: _ths),
               SizedBox(height: 4),
               Text(
-                'If writable cells are selected: fills them with that digit '
-                '(skips conflicts). If no cells are selected: highlights all '
+                'If writable cells are selected (empty or already filled by you): '
+                'fills them with that digit (skips conflicts). '
+                'If no cells are selected: highlights all '
                 'matching cells and their peers to show candidate positions.',
                 style: _ts,
               ),

@@ -349,7 +349,8 @@ class GameNotifier extends Notifier<GameState> {
   }
 
   /// Long-press a digit button for ~1 s:
-  /// • If the current selection contains writable cells (non-given, digit == null):
+  /// • If the current selection contains writable cells (non-given, including
+  ///   cells that already have a user-placed digit):
   ///   place [digit] in each such cell, skipping any where it would conflict.
   /// • Otherwise (no selection or all selected are givens):
   ///   pin [digit] so every board cell carrying that value is tinted.
@@ -358,7 +359,7 @@ class GameNotifier extends Notifier<GameState> {
     final writableCells = sel
         .where((pos) {
           final cell = state.board.cellAt(pos.$1, pos.$2);
-          return !cell.isGiven && cell.digit == null;
+          return !cell.isGiven;
         })
         .toList();
 
