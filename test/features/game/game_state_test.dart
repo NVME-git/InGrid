@@ -174,7 +174,61 @@ void main() {
       expect(game.flashNoteCells, isEmpty);
     });
 
-    test('placing a digit removes its candidates from row/col/box peers', () {
+    test('longPressDigit highlights when no cells selected', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      container.read(gameProvider.notifier).startManualEntry();
+      container.read(gameProvider.notifier).longPressDigit(5);
+      expect(container.read(gameProvider).pinnedDigit, 5);
+      expect(container.read(gameProvider).selectedCells, isEmpty);
+    });
+
+    test('longPressDigit enters digit in selected empty non-given cell', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      container.read(gameProvider.notifier).startManualEntry();
+      container.read(gameProvider.notifier).selectCell(0, 0);
+      container.read(gameProvider.notifier).longPressDigit(5);
+      expect(container.read(gameProvider).board.cells[0][0].digit, 5);
+    });
+
+    test('longPressDigit overwrites existing user digit in selected cell', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      container.read(gameProvider.notifier).startManualEntry();
+      // Place digit 3 at (0,0)
+      container.read(gameProvider.notifier).selectCell(0, 0);
+      container.read(gameProvider.notifier).enterDigit(3);
+      expect(container.read(gameProvider).board.cells[0][0].digit, 3);
+      // Long-press digit 5 with (0,0) still selected — should overwrite 3 with 5
+      container.read(gameProvider.notifier).longPressDigit(5);
+      expect(container.read(gameProvider).board.cells[0][0].digit, 5);
+    });
+
+    test('longPressDigit highlights when only given cells are selected', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      container.read(gameProvider.notifier).startNewGame(Difficulty.easy);
+      // Find a given cell and select it
+      final game = container.read(gameProvider);
+      (int, int)? givenCell;
+      outer:
+      for (int r = 0; r < 9; r++) {
+        for (int c = 0; c < 9; c++) {
+          if (game.board.cells[r][c].isGiven) {
+            givenCell = (r, c);
+            break outer;
+          }
+        }
+      }
+      expect(givenCell, isNotNull);
+      container.read(gameProvider.notifier).selectCell(givenCell!.$1, givenCell.$2);
+      container.read(gameProvider.notifier).longPressDigit(5);
+      // Should highlight (pinnedDigit), not modify given cell
+      expect(container.read(gameProvider).pinnedDigit, 5);
+    });
+
+
       final container = ProviderContainer();
       addTearDown(container.dispose);
       container.read(gameProvider.notifier).startManualEntry();
