@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 const _teal = Color(0xFF0D9488);
 const _bg = Color(0xFF1A1A2E);
@@ -111,8 +112,49 @@ class HelpScreen extends StatelessWidget {
                 style: _ts,
               ),
               SizedBox(height: 24),
+
+              // ── Support ──────────────────────────────────────────────────
+              Text('Support', style: _ths),
+              SizedBox(height: 8),
+              _BuyMeCoffeeButton(),
+              SizedBox(height: 24),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BuyMeCoffeeButton extends StatelessWidget {
+  const _BuyMeCoffeeButton();
+
+  static final _url = Uri.parse('https://buymeacoffee.com/nabeelvandayar');
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => launchUrl(_url, mode: LaunchMode.externalApplication),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFDD00),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('☕', style: TextStyle(fontSize: 18)),
+            SizedBox(width: 8),
+            Text(
+              'Buy me a coffee',
+              style: TextStyle(
+                color: Color(0xFF000000),
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
         ),
       ),
     );
