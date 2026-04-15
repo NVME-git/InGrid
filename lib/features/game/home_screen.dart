@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'game_state.dart';
 import '../../core/engine/engine.dart';
 import '../../services/persistence_service.dart';
@@ -183,6 +184,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ),
                     ],
                   ),
+
+                  // ── Support ───────────────────────────────────────────────
+                  const SizedBox(height: 24),
+                  const _BuyMeCoffeeButton(),
+                  const SizedBox(height: 8),
                 ],
               ),
             ),
@@ -374,6 +380,51 @@ class _ContinueButton extends StatelessWidget {
             Text(
               '${_diffLabel(savedGame.difficulty)} • ${_formatElapsed(savedGame.elapsed)}',
               style: const TextStyle(fontSize: 11, color: Color(0xFF0D9488)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BuyMeCoffeeButton extends StatelessWidget {
+  const _BuyMeCoffeeButton();
+
+  static final _url = Uri.parse('https://buymeacoffee.com/nabeelvandayar');
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () async {
+        if (!await launchUrl(_url, mode: LaunchMode.externalApplication)) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Could not open buymeacoffee.com'),
+              ),
+            );
+          }
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFDD00),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: const Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.coffee, size: 20, color: Colors.black),
+            SizedBox(width: 8),
+            Text(
+              'Buy me a coffee',
+              style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.w700,
+                fontSize: 14,
+              ),
             ),
           ],
         ),
