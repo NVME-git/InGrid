@@ -119,6 +119,7 @@ class PersistenceService {
   static const _currentGameKey = 'current_game_v1';
   static const _historyKey = 'game_history_v1';
   static const _statsKey = 'game_stats_v1';
+  static const _pwaInstallDismissedKey = 'pwa_install_banner_dismissed';
 
   // ── Board serialisation helpers ──────────────────────────────────────────
 
@@ -296,6 +297,26 @@ class PersistenceService {
     } catch (_) {
       return {};
     }
+  }
+
+  // ── PWA install banner ───────────────────────────────────────────────────
+
+  /// Returns true when the user has previously dismissed the install banner.
+  static Future<bool> isPwaInstallBannerDismissed() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getBool(_pwaInstallDismissedKey) ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Persists the user's choice to dismiss the install banner permanently.
+  static Future<void> dismissPwaInstallBanner() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_pwaInstallDismissedKey, true);
+    } catch (_) {}
   }
 
   // ── Helpers for external callers ─────────────────────────────────────────

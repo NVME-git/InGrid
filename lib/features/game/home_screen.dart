@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'game_state.dart';
 import '../../core/engine/engine.dart';
 import '../../services/persistence_service.dart';
+import '../../services/pwa_helper.dart';
 import '../../services/theme_notifier.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -17,11 +18,30 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   SavedGame? _savedGame;
   bool _checkingStorage = true;
+  bool _showInstallBanner = false;
+  bool _isIos = false;
 
   @override
   void initState() {
     super.initState();
     _checkSavedGame();
+    _checkInstallBanner();
+  }
+
+  Future<void> _checkInstallBanner() async {
+    if (isStandalonePwa()) return; // already installed – never show
+    final dismissed = await PersistenceService.isPwaInstallBannerDismissed();
+    if (mounted && !dismissed) {
+      setState(() {
+        _showInstallBanner = true;
+        _isIos = isIosBrowser();
+      });
+    }
+  }
+
+  Future<void> _dismissInstallBanner() async {
+    setState(() => _showInstallBanner = false);
+    await PersistenceService.dismissPwaInstallBanner();
   }
 
   Future<void> _checkSavedGame() async {
@@ -49,6 +69,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         ],
       ),
+      bottomNavigationBar: _showInstallBanner
+          ? _InstallBanner(isIos: _isIos, onDismiss: _dismissInstallBanner)
+          : null,
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
@@ -424,6 +447,133 @@ class _BuyMeCoffeeButton extends StatelessWidget {
                 color: Colors.black,
                 fontWeight: FontWeight.w700,
                 fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _InstallBanner extends StatelessWidget {
+  final bool isIos;
+  final VoidCallback onDismiss;
+
+  const _InstallBanner({required this.isIos, required this.onDismiss});
+
+  @override
+  Widget build(BuildContext context) {
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+    return SafeArea(
+      top: false,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          border: Border(
+            top: BorderSide(
+              color: const Color(0xFF0D9488).withValues(alpha: 0.4),
+              width: 1,
+            ),
+          ),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Padding(
+              padding: EdgeInsets.only(top: 2),
+              child: Icon(
+                Icons.add_to_home_screen,
+                color: Color(0xFF0D9488),
+                size: 28,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Add to Home Screen',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  if (isIos)
+                    Text.rich(
+                      TextSpan(
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: onSurface.withValues(alpha: 0.72),
+                        ),
+                        children: const [
+                          TextSpan(text: 'Tap the '),
+                          WidgetSpan(
+                            alignment: PlaceholderAlignment.middle,
+                            child: Icon(
+                              Icons.ios_share,
+                              size: 14,
+                              color: Color(0xFF0D9488),
+                            ),
+                          ),
+                          TextSpan(text: ' share button, then '),
+                          TextSpan(
+                            text: '"Add to Home Screen"',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF0D9488),
+                            ),
+                          ),
+                          TextSpan(text: ' to install InGrid.'),
+                        ],
+                      ),
+                    )
+                  else
+                    Text.rich(
+                      TextSpan(
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: onSurface.withValues(alpha: 0.72),
+                        ),
+                        children: const [
+                          TextSpan(text: 'Tap the '),
+                          WidgetSpan(
+                            alignment: PlaceholderAlignment.middle,
+                            child: Icon(
+                              Icons.more_vert,
+                              size: 14,
+                              color: Color(0xFF0D9488),
+                            ),
+                          ),
+                          TextSpan(text: ' menu, then '),
+                          TextSpan(
+                            text: '"Add to Home Screen"',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF0D9488),
+                            ),
+                          ),
+                          TextSpan(text: ' to install InGrid.'),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            GestureDetector(
+              onTap: onDismiss,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: Icon(
+                  Icons.close,
+                  size: 18,
+                  color: onSurface.withValues(alpha: 0.54),
+                ),
               ),
             ),
           ],
