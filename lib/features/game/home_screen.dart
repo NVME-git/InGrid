@@ -396,7 +396,17 @@ class _BuyMeCoffeeButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => launchUrl(_url, mode: LaunchMode.externalApplication),
+      onTap: () async {
+        if (!await launchUrl(_url, mode: LaunchMode.externalApplication)) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Could not open buymeacoffee.com'),
+              ),
+            );
+          }
+        }
+      },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
