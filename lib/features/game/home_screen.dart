@@ -39,9 +39,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
   }
 
-  void _dismissInstallBanner() {
+  Future<void> _dismissInstallBanner() async {
     setState(() => _showInstallBanner = false);
-    PersistenceService.dismissPwaInstallBanner();
+    await PersistenceService.dismissPwaInstallBanner();
   }
 
   Future<void> _checkSavedGame() async {
