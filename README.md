@@ -104,6 +104,14 @@ State management uses **Riverpod** (`flutter_riverpod`). Navigation uses **GoRou
 
 ---
 
+## Support
+
+If you find InGrid useful, consider buying me a coffee!
+
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-FFDD00?style=flat&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/nabeelvandayar)
+
+---
+
 ## Licence
 
 See [LICENSE](LICENSE).
