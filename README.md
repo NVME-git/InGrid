@@ -100,7 +100,15 @@ State management uses **Riverpod** (`flutter_riverpod`). Navigation uses **GoRou
 
 ## Screenshots
 
-> _Add screenshots here once the UI is finalised._
+| Home screen | Game screen |
+|-------------|-------------|
+| ![Home screen](screenshots/home.png) | ![Game screen](screenshots/game.png) |
+
+| Landscape layout | Statistics |
+|------------------|------------|
+| ![Landscape](screenshots/landscape.png) | ![Statistics](screenshots/stats.png) |
+
+> _Screenshots coming soon — images will be added to the `screenshots/` folder._
 
 ---
 
